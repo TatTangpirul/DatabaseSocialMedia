@@ -11,14 +11,14 @@ export default function RootLayout({
 }>) {
     return (
       <html lang="en">
-        <body className="flex flex-row justify-center gap-4">
-          <div className="flex flex-row gap-4 items-center">
-            <AccountInfo />
-            <div id="top" className="bg-white p-4">test</div>
-            <Feed />
-            <main>{children}</main>
-          </div>
-        </body>
+      <body className="flex flex-row justify-center gap-4">
+        <div className="flex flex-row gap-4 items-center">
+          <AccountInfo />
+          <div id="top" className="bg-white p-4">test</div>
+          <Feed />
+          <main>{children}</main>
+        </div>
+      </body>
       </html>
     );
 }
