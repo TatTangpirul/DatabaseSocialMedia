@@ -1,53 +1,47 @@
 import { NextResponse } from 'next/server';
-import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import argon2 from 'argon2';
 import pool from '@/lib/db';
 
-export async function POST(request: Request) {
+export async function POST(req: Request) {
+  const { username, password } = await req.json();
+
+  if (!username || !password) {
+    return NextResponse.json({ error: 'Account and password are required' }, { status: 400 });
+  }
+
   try {
-    const { account, pin } = await request.json();
-
-    if (!account || !pin) {
-      return NextResponse.json(
-        { error: 'Account and password are required' },
-        { status: 400 }
-      );
-    }
-
-    // Fetch user by account
-    const [rows] = await pool.query(
-      'SELECT id, account, pin_hash, nickname FROM users WHERE account = ?',
-      [account]
+    const result = await pool.query(
+      'SELECT username, password_hash FROM users WHERE username = $1',
+      [username]
     );
 
-    const users = rows as any[];
-    if (users.length === 0) {
-      return NextResponse.json(
-        { error: 'Invalid account or password' },
-        { status: 401 }
-      );
+    const user = result.rows[0];
+
+    if (!user) {
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    const user = users[0];
-    const isValid = await bcrypt.compare(pin, user.pin_hash);
+    const valid = await argon2.verify(user.password_hash, password);
 
-    if (!isValid) {
-      return NextResponse.json(
-        { error: 'Invalid account or password' },
-        { status: 401 }
-      );
+    if (!valid) {
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    // Return user info (exclude password hash)
-    return NextResponse.json({
-      id: user.id,
-      account: user.account,
-      nickname: user.nickname,
+    const payload = { account: user.username };
+    const token = jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn: '2h' });
+
+    const res = NextResponse.json({ user: payload });
+    res.cookies.set('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 60 * 60 * 2,
+      path: '/',
     });
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+
+    return res;
+  } catch (err) {
+    console.error(err);
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

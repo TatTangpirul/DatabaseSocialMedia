@@ -1,29 +1,24 @@
 'use client';
 
-import Link from 'next/link';
+
+import Feed from "./MainComponent/Feed";
+import AccountInfo from "./MainComponent/AccountInfo";
+import { useEffect, useState } from "react";
 
 export default function HomePage() {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    fetch('/api/me')
+      .then(res => res.json())
+      .then(data => setUser(data.user))
+      .catch(() => setUser(null));
+  }, []);
+
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50">
-      <div className="text-center">
-        <h1 className="mb-8 text-4xl font-bold text-gray-900">
-          Welcome!
-        </h1>
-        <div className="space-x-4">
-          <Link
-            href="/login"
-            className="inline-block rounded-md bg-blue-600 px-6 py-3 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            Log in
-          </Link>
-          <Link
-            href="/register"
-            className="inline-block rounded-md bg-gray-200 px-6 py-3 text-gray-800 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500"
-          >
-            Sign up
-          </Link>
-        </div>
-      </div>
+    <div className="flex flex-row items-start justify-center p-4 gap-2">
+      <AccountInfo />
+      <Feed />
     </div>
   );
 }

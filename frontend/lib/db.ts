@@ -12,4 +12,4 @@ const pool = new Pool({
   }
 });
 
-export { pool };
+export default pool;

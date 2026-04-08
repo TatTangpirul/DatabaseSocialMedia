@@ -41,14 +41,14 @@ export default function AccountInfo() {
 
   if (loading) {
     return (
-      <div className="w-64 bg-white p-4 rounded shadow-lg mt-16">
+      <div className="w-64 bg-white p-4 rounded shadow-lg">
         Loading posts...
       </div>
     );
   }
 
   return (
-    <div className="w-64 bg-white p-4 rounded shadow-lg mt-16">
+    <div className="w-150 bg-white p-4 rounded shadow-lg">
       <h3 className="font-bold mb-3 text-lg">Latest Posts</h3>
       <div className="space-y-3">
         {posts.length === 0 ? (
@@ -62,7 +62,7 @@ export default function AccountInfo() {
                 <img 
                   src={post.image_url} 
                   alt="Post image"
-                  className="w-full h-32 object-cover rounded-md my-2"
+                  className="w-full object-cover rounded-md my-2"
                 />
               )}
               <p className="text-xs text-gray-600 truncate">{post.content}</p>

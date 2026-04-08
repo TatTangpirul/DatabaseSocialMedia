@@ -18,14 +18,12 @@ export default function LoginPage() {
       const res = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ account, pin: password }),
+        body: JSON.stringify({ username:account, password: password }),
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        // Store user info in localStorage for client state
-        localStorage.setItem('currentUser', JSON.stringify(data));
         router.push('/');
       } else {
         setError(data.error || 'Login failed');
@@ -36,7 +34,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50">
+    <div className="flex min-h-screen items-center justify-center">
       <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-md">
         <h1 className="mb-6 text-2xl font-bold text-gray-900">Log in</h1>
 
@@ -89,5 +87,6 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+
   );
 }
