@@ -9,8 +9,8 @@ export default function TopBar() {
     const { user } = useAuth();
 
     return (
-        <div id="top" className="flex items-center bg-white p-4 space-x-4">
-            <div className="ml-auto flex items-center gap-2">
+        <div id="top" className="fixed top-0 left-0 right-0 bg-white z-50 shadow h-[60px]">
+            <div className="max-w-[600px] mx-auto h-full flex items-center justify-end gap-2">
                 {!user ? (
                     <>
                         <Link
@@ -28,12 +28,12 @@ export default function TopBar() {
                     </>
                 ) : null}
                 {user ? (
-                    <>
-                        <div className="p-2 bg-gray-200 rounded-md cursor-pointer hover:bg-gray-400 cursor-pointer">
-                            <Cog size={24} className="text-gray-600" />
-                        </div>
-                        <ProfileDropdown />
-                    </>
+                        <>
+                            <div className="p-2 bg-gray-200 rounded-md cursor-pointer hover:bg-gray-400">
+                                <Cog size={24} className="text-gray-600" />
+                            </div>
+                            <ProfileDropdown />
+                        </>
                 ) : null}
             </div>
         </div>
