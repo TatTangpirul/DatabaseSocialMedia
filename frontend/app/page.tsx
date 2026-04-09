@@ -16,9 +16,10 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="flex flex-row items-start justify-center p-4 gap-2">
+    <div className="flex flex-row items-start justify-center p-4 gap-8">
       <AccountInfo />
       <Feed />
+      <AccountInfo />
     </div>
   );
 }

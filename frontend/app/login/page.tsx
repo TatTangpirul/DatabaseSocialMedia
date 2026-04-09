@@ -2,10 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
-  const router = useRouter();
   const [account, setAccount] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -24,7 +22,7 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (res.ok) {
-        router.push('/');
+        window.location.href = '/';
       } else {
         setError(data.error || 'Login failed');
       }

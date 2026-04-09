@@ -12,7 +12,7 @@ export async function POST(req: Request) {
 
   try {
     const result = await pool.query(
-      'SELECT username, password_hash FROM users WHERE username = $1',
+      'SELECT username, password_hash, profile_image_url, n_posts FROM users WHERE username = $1',
       [username]
     );
 
@@ -28,7 +28,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    const payload = { account: user.username };
+    const payload = { 
+      account: user.username,
+      profile_image_url: user.profile_image_url,
+      n_posts: user.n_posts,
+    };
+    
     const token = jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn: '2h' });
 
     const res = NextResponse.json({ user: payload });
