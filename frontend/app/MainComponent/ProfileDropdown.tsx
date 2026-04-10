@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { SquareUserRound } from 'lucide-react';
+import { Power, SquareUserRound } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'next/navigation';
 
@@ -50,8 +50,9 @@ export default function ProfileDropdown() {
                 <div className="absolute right-0 top-full mt-2 w-40 bg-white rounded-md shadow-lg border border-gray-100 z-50">
                     <button
                         onClick={handleLogout}
-                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
+                        className="w-full text-left px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 cursor-pointer flex items-center gap-2"
                     >
+                        <Power size={16} className="text-gray-600" />
                         Log out
                     </button>
                 </div>

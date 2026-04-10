@@ -16,7 +16,7 @@ export default function LoginPage() {
       const res = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username:account, password: password }),
+        body: JSON.stringify({ username: account, password: password }),
       });
 
       const data = await res.json();
@@ -32,8 +32,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-md">
+    <div className="flex min-h-screen items-center justify-center -mt-[60px]">
+      <div className="w-[400px] max-w-md rounded-lg bg-white p-8 shadow-md">
         <h1 className="mb-6 text-2xl font-bold text-gray-900">Log in</h1>
 
         <form onSubmit={handleSubmit}>
@@ -85,6 +85,5 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
-
   );
 }

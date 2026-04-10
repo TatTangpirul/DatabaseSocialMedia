@@ -58,12 +58,12 @@ export default function Feed() {
       ) : null}
 
       {/* Posts List */}
-      <div className="w-150 bg-white p-4 rounded-lg shadow-lg space-y-4">
+      <div className="">
         {posts.length === 0 ? (
           <p className="text-gray-500 text-sm">No posts yet.</p>
         ) : (
           posts.map((post) => (
-            <div key={post.id} className="border-b pb-2 last:border-0">
+            <div key={post.id} className="w-150 bg-white p-4 rounded-lg shadow-lg space-y-4 mb-6">
               <div className="flex items-center gap-2 mb-1">
                 {post.profile_image_url ? (
                   <img

@@ -21,7 +21,7 @@ export default function PostForm() {
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                     placeholder="What's on your mind?"
-                    className="flex-1 resize-none rounded-md px-3 p-0 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center leading-[2.5rem]"
+                    className="flex-1 resize-none rounded-md px-3 p-0 text-sm focus:outline-none focus:ring-0 flex items-center leading-[2.5rem]"
                     rows={1}
                 />
             </div>
@@ -34,10 +34,11 @@ export default function PostForm() {
                     <span>Photo</span>
                 </button>
                 <button
-                onClick={() => {}}
-                className="rounded-md bg-blue-600 px-4 py-1.5 text-sm text-white hover:bg-blue-700 cursor-pointer"
+                    onClick={() => {}}
+                    disabled={!content.trim()}
+                    className="rounded-md bg-blue-600 px-4 py-1.5 text-sm text-white hover:bg-blue-700 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                Post
+                    Post
                 </button>
             </div>
         </>
