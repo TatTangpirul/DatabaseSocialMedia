@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { CircleUserRound, ImageIcon, SquareUserRound, Heart } from 'lucide-react';
+import { CircleUserRound, ImageIcon, SquareUserRound, Heart, MessageCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import PostForm from './PostForm';
 
@@ -92,6 +92,10 @@ export default function Feed() {
     }
   }
 
+  async function toggleComment(postId: number) {
+
+  }
+
   if (loading) {
     return (
       <div className="w-150 bg-white p-4 rounded shadow-lg">
@@ -139,13 +143,24 @@ export default function Feed() {
                 <button 
                   onClick={() => toggleLike(post.id)}
                   disabled={post.likeLoading}
-                  className={`flex items-center gap-1 text-sm ${post.likeLoading ? 'opacity-50' : ''}`}
+                  className={`flex items-center gap-1 text-sm cursor-pointer ${post.likeLoading ? 'opacity-50' : ''}`}
                 >
                   <Heart 
                     size={16} 
                     className={post.liked && post.likes_count > 0 ? 'fill-red-500 text-red-500' : 'text-gray-500'} 
                   />
                   <span className="text-gray-500">{post.likes_count}</span>
+                </button>
+                <button 
+                  onClick={() => toggleComment(post.id)}
+                  disabled={post.likeLoading}
+                  className={`flex items-center gap-1 text-sm cursor-pointer ${post.likeLoading ? 'opacity-50' : ''}`}
+                >
+                  <MessageCircle 
+                    size={16} 
+                    className={''} 
+                  />
+                  <span className="text-gray-500">{post.comments_count}</span>
                 </button>
               </div>
               <p className="text-xs text-gray-400">
