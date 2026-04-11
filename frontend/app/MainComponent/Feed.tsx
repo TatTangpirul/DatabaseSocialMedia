@@ -26,33 +26,33 @@ export default function Feed() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function fetchPosts() {
+  const fetchPosts = async () => {
       try {
-        const response = await fetch('/api/posts');
-        const data = await response.json();
-        if (data.success) {
-          const postsWithLikes = await Promise.all(
-            data.posts.map(async (post: Post) => {
-              if (!user) return { ...post, liked: false };
-              try {
-                const likeRes = await fetch(`/api/posts/${post.id}/like?userId=${user.id}`);
-                const likeData = await likeRes.json();
-                return { ...post, liked: likeData.liked };
-              } catch {
-                return { ...post, liked: false };
-              }
-            })
-          );
-          setPosts(postsWithLikes);
-        }
+          const response = await fetch('/api/posts');
+          const data = await response.json();
+          if (data.success) {
+              const postsWithLikes = await Promise.all(
+                  data.posts.map(async (post: Post) => {
+                      if (!user) return { ...post, liked: false };
+                      try {
+                          const likeRes = await fetch(`/api/posts/${post.id}/like?userId=${user.id}`);
+                          const likeData = await likeRes.json();
+                          return { ...post, liked: likeData.liked };
+                      } catch {
+                          return { ...post, liked: false };
+                      }
+                  })
+              );
+              setPosts(postsWithLikes);
+          }
       } catch (error) {
-        console.error('Error fetching posts:', error);
+          console.error('Error fetching posts:', error);
       } finally {
-        setLoading(false);
+          setLoading(false);
       }
-    }
-    fetchPosts();
+  };
+  useEffect(() => {
+      fetchPosts();
   }, [user]);
 
   async function toggleLike(postId: number) {
@@ -108,7 +108,7 @@ export default function Feed() {
     <div className="">
       { user ? (
         <div className="w-150 bg-white p-4 rounded-lg shadow-lg space-y-4 mb-6">
-          <PostForm />
+          <PostForm onPostSuccess={fetchPosts} />
         </div>
       ) : null}
 
