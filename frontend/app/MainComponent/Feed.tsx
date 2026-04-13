@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { CircleUserRound, ImageIcon, SquareUserRound, Heart } from 'lucide-react';
+import { CircleUserRound, Heart, MessageCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import PostForm from './PostForm';
 
@@ -19,6 +19,18 @@ interface Post {
   profile_image_url: string;
   liked?: boolean;
   likeLoading?: boolean;
+  comments?: Comment[];
+  showComments?: boolean;
+}
+
+interface Comment {
+  id: number;
+  content: string;
+  created_at: string;
+  updated_at: string;
+  user_id: number;
+  username: string;
+  profile_image_url: string;
 }
 
 export default function Feed() {
@@ -92,6 +104,56 @@ export default function Feed() {
     }
   }
 
+  async function toggleComments(postId: number) {
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
+
+    if (!post.showComments && !post.comments) {
+      try {
+        const response = await fetch(`/api/posts/${postId}/comments`);
+        const data = await response.json();
+        if (data.success) {
+          setPosts(prevPosts => prevPosts.map(p => 
+            p.id === postId ? { ...p, comments: data.comments, showComments: true } : p
+          ));
+        }
+      } catch (error) {
+        console.error('Error fetching comments:', error);
+      }
+    } else {
+      setPosts(prevPosts => prevPosts.map(p => 
+        p.id === postId ? { ...p, showComments: !p.showComments } : p
+      ));
+    }
+  }
+
+  async function addComment(postId: number, content: string) {
+    if (!user || !content.trim()) return;
+
+    try {
+      const response = await fetch(`/api/posts/${postId}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, content }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setPosts(prevPosts => prevPosts.map(p => {
+          if (p.id === postId) {
+            return { 
+              ...p, 
+              comments: [data.comment, ...(p.comments || [])],
+              comments_count: p.comments_count + 1
+            };
+          }
+          return p;
+        }));
+      }
+    } catch (error) {
+      console.error('Error adding comment:', error);
+    }
+  }
+
   if (loading) {
     return (
       <div className="w-150 bg-white p-4 rounded shadow-lg">
@@ -147,7 +209,50 @@ export default function Feed() {
                   />
                   <span className="text-gray-500">{post.likes_count}</span>
                 </button>
+                <button 
+                  onClick={() => toggleComments(post.id)}
+                  className="flex items-center gap-1 text-sm"
+                >
+                  <MessageCircle size={16} className="text-gray-500" />
+                  <span className="text-gray-500">{post.comments_count}</span>
+                </button>
               </div>
+              {post.showComments && (
+                <div className="mt-3 pt-3 border-t border-gray-100 space-y-3">
+                  {post.comments?.map((comment) => (
+                    <div key={comment.id} className="flex gap-2">
+                      {comment.profile_image_url ? (
+                        <img
+                          src={comment.profile_image_url}
+                          alt={comment.username}
+                          className="w-8 h-8 rounded-full object-cover"
+                        />
+                      ) : (
+                        <CircleUserRound size={32} className="text-gray-400" />
+                      )}
+                      <div className="flex-1">
+                        <p className="text-xs font-semibold">{comment.username}</p>
+                        <p className="text-xs text-gray-600">{comment.content}</p>
+                      </div>
+                    </div>
+                  ))}
+                  {user && (
+                    <div className="flex gap-2 mt-2">
+                      <input
+                        type="text"
+                        placeholder="Write a comment..."
+                        className="flex-1 text-xs border rounded px-2 py-1"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            addComment(post.id, (e.target as HTMLInputElement).value);
+                            (e.target as HTMLInputElement).value = '';
+                          }
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
               <p className="text-xs text-gray-400">
                 {new Date(post.updated_at).toLocaleDateString()}
               </p>
