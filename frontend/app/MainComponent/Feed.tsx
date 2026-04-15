@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { CircleUserRound, Heart, MessageCircle } from 'lucide-react';
+import { CircleUserRound, ImageIcon, SquareUserRound, Heart, MessageCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import PostForm from './PostForm';
 
@@ -166,7 +166,7 @@ export default function Feed() {
     <div className="">
       { user ? (
         <div className="w-150 bg-white p-4 rounded-lg shadow-lg space-y-4 mb-6">
-          <PostForm />
+          <PostForm onPostSuccess={fetchPosts} />
         </div>
       ) : null}
 
@@ -201,7 +201,7 @@ export default function Feed() {
                 <button 
                   onClick={() => toggleLike(post.id)}
                   disabled={post.likeLoading}
-                  className={`flex items-center gap-1 text-sm ${post.likeLoading ? 'opacity-50' : ''}`}
+                  className={`flex items-center gap-1 text-sm cursor-pointer ${post.likeLoading ? 'opacity-50' : ''}`}
                 >
                   <Heart 
                     size={16} 
