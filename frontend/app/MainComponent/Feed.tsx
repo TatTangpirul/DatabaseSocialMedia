@@ -38,33 +38,33 @@ export default function Feed() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function fetchPosts() {
-      try {
-        const response = await fetch('/api/posts');
-        const data = await response.json();
-        if (data.success) {
-          const postsWithLikes = await Promise.all(
-            data.posts.map(async (post: Post) => {
-              if (!user) return { ...post, liked: false };
-              try {
-                const likeRes = await fetch(`/api/posts/${post.id}/like?userId=${user.id}`);
-                const likeData = await likeRes.json();
-                return { ...post, liked: likeData.liked };
-              } catch {
-                return { ...post, liked: false };
-              }
-            })
-          );
-          setPosts(postsWithLikes);
-        }
-      } catch (error) {
-        console.error('Error fetching posts:', error);
-      } finally {
-        setLoading(false);
+  async function fetchPosts() {
+    try {
+      const response = await fetch('/api/posts');
+      const data = await response.json();
+      if (data.success) {
+        const postsWithLikes = await Promise.all(
+          data.posts.map(async (post: Post) => {
+            if (!user) return { ...post, liked: false };
+            try {
+              const likeRes = await fetch(`/api/posts/${post.id}/like?userId=${user.id}`);
+              const likeData = await likeRes.json();
+              return { ...post, liked: likeData.liked };
+            } catch {
+              return { ...post, liked: false };
+            }
+          })
+        );
+        setPosts(postsWithLikes);
       }
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+    } finally {
+      setLoading(false);
     }
-    fetchPosts();
+  }
+  useEffect(() => {
+      fetchPosts();
   }, [user]);
 
   async function toggleLike(postId: number) {
@@ -182,7 +182,7 @@ export default function Feed() {
                   <img
                     src={post.profile_image_url}
                     alt={post.username}
-                    className="w-12 h-12 rounded-full object-cover"
+                    className="w-10 h-10 rounded-full object-cover"
                   />
                 ) : (
                   <CircleUserRound size={48} className="text-gray-600" />
@@ -196,7 +196,7 @@ export default function Feed() {
                   className="w-full object-cover rounded-md my-2"
                 />
               )}
-              <p className="text-xs text-gray-600 truncate">{post.content}</p>
+              <p className="text-sm text-gray-600 truncate mt-4">{post.content}</p>
               <div className="flex items-center gap-4 mt-2">
                 <button 
                   onClick={() => toggleLike(post.id)}
