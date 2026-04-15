@@ -52,7 +52,6 @@ export default function RegisterPage() {
         return;
       }
 
-      // Registration successful – redirect to login with success flag
       router.push('/login?registered=true');
     } catch (err) {
       console.error('Fetch error:', err);
@@ -71,7 +70,7 @@ export default function RegisterPage() {
           {/* Account field */}
           <div className="mb-4">
             <label htmlFor="account" className="block text-sm font-medium text-gray-700">
-              Account
+              Email
             </label>
             <input
               type="text"
@@ -81,6 +80,22 @@ export default function RegisterPage() {
               required
               className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
               placeholder="Choose a new account"
+            />
+          </div>
+
+          {/* Nickname field (merged from nickname page) */}
+          <div className="mb-6">
+            <label htmlFor="nickname" className="block text-sm font-medium text-gray-700">
+              Username
+            </label>
+            <input
+              type="text"
+              id="nickname"
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+              required
+              className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+              placeholder="How should we call you?"
             />
           </div>
 
@@ -97,22 +112,6 @@ export default function RegisterPage() {
               required
               className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
               placeholder="Create a password"
-            />
-          </div>
-
-          {/* Nickname field (merged from nickname page) */}
-          <div className="mb-6">
-            <label htmlFor="nickname" className="block text-sm font-medium text-gray-700">
-              Nickname
-            </label>
-            <input
-              type="text"
-              id="nickname"
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
-              required
-              className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-              placeholder="How should we call you?"
             />
           </div>
 

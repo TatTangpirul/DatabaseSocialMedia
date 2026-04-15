@@ -6,7 +6,9 @@ import argon2 from 'argon2';
 export async function POST(request: Request) {
   try {
     // Parse request body (frontend uses account, pin, username)
-    const { account, pin, username } = await request.json();
+    const data = await request.json();
+    console.log(data);
+    const { account, pin, username } = data;
 
     // Validate required fields
     if (!account || !pin || !username) {
@@ -48,7 +50,7 @@ export async function POST(request: Request) {
 
     // Insert new user with correct column names
     await pool.query(
-      'INSERT INTO users (email, password_hash, username) VALUES ($1, $2, $3)',
+      'INSERT INTO users (email, password_hash, username, n_posts) VALUES ($1, $2, $3, 0)',
       [account, hashedPassword, username]
     );
 

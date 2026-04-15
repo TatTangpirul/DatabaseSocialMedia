@@ -2,9 +2,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { CircleUserRound, ImageIcon, SquareUserRound, Heart, MessageCircle } from 'lucide-react';
+import { CircleUserRound, ImageIcon, SquareUserRound, Heart, MessageCircle, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import PostForm from './PostForm';
+import { useRouter } from 'next/navigation';
 
 interface Post {
   id: number;
@@ -35,8 +36,11 @@ interface Comment {
 
 export default function Feed() {
   const { user } = useAuth();
+  const router = useRouter();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hoveredPost, setHoveredPost] = useState<number | null>(null);
+  const [menuOpen, setMenuOpen] = useState<number | null>(null);
 
   async function fetchPosts() {
     try {
@@ -176,18 +180,53 @@ export default function Feed() {
           <p className="text-gray-500 text-sm">No posts yet.</p>
         ) : (
           posts.map((post) => (
-            <div key={post.id} className="w-150 bg-white p-4 rounded-lg shadow-lg space-y-4 mb-6">
+            <div
+              key={post.id}
+              className="relative w-150 bg-white p-4 rounded-lg shadow-lg space-y-4 mb-6"
+              onMouseEnter={() => setHoveredPost(post.id)}
+              onMouseLeave={() => { setHoveredPost(null); setMenuOpen(null); }}
+            >
+              {hoveredPost === post.id && user?.account === post.username && (
+                <div className="absolute top-3 right-3">
+                  <button
+                    onClick={() => setMenuOpen(menuOpen === post.id ? null : post.id)}
+                    className="p-1 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600"
+                  >
+                    <MoreHorizontal size={18} />
+                  </button>
+
+                  {menuOpen === post.id && (
+                    <div className="absolute right-0 mt-1 w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden">
+                      <button
+                        onClick={() => { /* your edit handler */ setMenuOpen(null); }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                      >
+                        <Pencil size={14} />
+                        Edit post
+                      </button>
+                      <button
+                        onClick={() => { /* your delete handler */ setMenuOpen(null); }}
+                        className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50 flex items-center gap-2"
+                      >
+                        <Trash2 size={14} />
+                        Delete post
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
               <div className="flex items-center gap-2 mb-1">
                 {post.profile_image_url ? (
                   <img
                     src={post.profile_image_url}
                     alt={post.username}
-                    className="w-10 h-10 rounded-full object-cover"
+                    className="w-10 h-10 rounded-full object-cover cursor-pointer"
+                    onClick={() => router.push(`/${post.username}`)}
                   />
                 ) : (
-                  <CircleUserRound size={48} className="text-gray-600" />
+                  <CircleUserRound size={48} className="text-gray-600 cursor-pointer" onClick={() => router.push(`/${post.username}`)}/>
                 )}
-                <p className="font-semibold text-sm">{post.username}</p>
+                <p className="font-semibold text-sm cursor-pointer" onClick={() => router.push(`/${post.username}`)}>{post.username}</p>
               </div>
               {post.image_url && (
                 <img
