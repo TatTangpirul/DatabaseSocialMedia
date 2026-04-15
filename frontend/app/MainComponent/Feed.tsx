@@ -19,6 +19,18 @@ interface Post {
   profile_image_url: string;
   liked?: boolean;
   likeLoading?: boolean;
+  comments?: Comment[];
+  showComments?: boolean;
+}
+
+interface Comment {
+  id: number;
+  content: string;
+  created_at: string;
+  updated_at: string;
+  user_id: number;
+  username: string;
+  profile_image_url: string;
 }
 
 export default function Feed() {
@@ -26,31 +38,31 @@ export default function Feed() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchPosts = async () => {
-      try {
-          const response = await fetch('/api/posts');
-          const data = await response.json();
-          if (data.success) {
-              const postsWithLikes = await Promise.all(
-                  data.posts.map(async (post: Post) => {
-                      if (!user) return { ...post, liked: false };
-                      try {
-                          const likeRes = await fetch(`/api/posts/${post.id}/like?userId=${user.id}`);
-                          const likeData = await likeRes.json();
-                          return { ...post, liked: likeData.liked };
-                      } catch {
-                          return { ...post, liked: false };
-                      }
-                  })
-              );
-              setPosts(postsWithLikes);
-          }
-      } catch (error) {
-          console.error('Error fetching posts:', error);
-      } finally {
-          setLoading(false);
+  async function fetchPosts() {
+    try {
+      const response = await fetch('/api/posts');
+      const data = await response.json();
+      if (data.success) {
+        const postsWithLikes = await Promise.all(
+          data.posts.map(async (post: Post) => {
+            if (!user) return { ...post, liked: false };
+            try {
+              const likeRes = await fetch(`/api/posts/${post.id}/like?userId=${user.id}`);
+              const likeData = await likeRes.json();
+              return { ...post, liked: likeData.liked };
+            } catch {
+              return { ...post, liked: false };
+            }
+          })
+        );
+        setPosts(postsWithLikes);
       }
-  };
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
   useEffect(() => {
       fetchPosts();
   }, [user]);
@@ -92,8 +104,54 @@ export default function Feed() {
     }
   }
 
-  async function toggleComment(postId: number) {
+  async function toggleComments(postId: number) {
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
 
+    if (!post.showComments && !post.comments) {
+      try {
+        const response = await fetch(`/api/posts/${postId}/comments`);
+        const data = await response.json();
+        if (data.success) {
+          setPosts(prevPosts => prevPosts.map(p => 
+            p.id === postId ? { ...p, comments: data.comments, showComments: true } : p
+          ));
+        }
+      } catch (error) {
+        console.error('Error fetching comments:', error);
+      }
+    } else {
+      setPosts(prevPosts => prevPosts.map(p => 
+        p.id === postId ? { ...p, showComments: !p.showComments } : p
+      ));
+    }
+  }
+
+  async function addComment(postId: number, content: string) {
+    if (!user || !content.trim()) return;
+
+    try {
+      const response = await fetch(`/api/posts/${postId}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, content }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setPosts(prevPosts => prevPosts.map(p => {
+          if (p.id === postId) {
+            return { 
+              ...p, 
+              comments: [data.comment, ...(p.comments || [])],
+              comments_count: p.comments_count + 1
+            };
+          }
+          return p;
+        }));
+      }
+    } catch (error) {
+      console.error('Error adding comment:', error);
+    }
   }
 
   if (loading) {
@@ -124,7 +182,7 @@ export default function Feed() {
                   <img
                     src={post.profile_image_url}
                     alt={post.username}
-                    className="w-12 h-12 rounded-full object-cover"
+                    className="w-10 h-10 rounded-full object-cover"
                   />
                 ) : (
                   <CircleUserRound size={48} className="text-gray-600" />
@@ -138,7 +196,7 @@ export default function Feed() {
                   className="w-full object-cover rounded-md my-2"
                 />
               )}
-              <p className="text-xs text-gray-600 truncate">{post.content}</p>
+              <p className="text-sm text-gray-600 truncate mt-4">{post.content}</p>
               <div className="flex items-center gap-4 mt-2">
                 <button 
                   onClick={() => toggleLike(post.id)}
@@ -152,17 +210,49 @@ export default function Feed() {
                   <span className="text-gray-500">{post.likes_count}</span>
                 </button>
                 <button 
-                  onClick={() => toggleComment(post.id)}
-                  disabled={post.likeLoading}
-                  className={`flex items-center gap-1 text-sm cursor-pointer ${post.likeLoading ? 'opacity-50' : ''}`}
+                  onClick={() => toggleComments(post.id)}
+                  className="flex items-center gap-1 text-sm"
                 >
-                  <MessageCircle 
-                    size={16} 
-                    className={''} 
-                  />
+                  <MessageCircle size={16} className="text-gray-500" />
                   <span className="text-gray-500">{post.comments_count}</span>
                 </button>
               </div>
+              {post.showComments && (
+                <div className="mt-3 pt-3 border-t border-gray-100 space-y-3">
+                  {post.comments?.map((comment) => (
+                    <div key={comment.id} className="flex gap-2">
+                      {comment.profile_image_url ? (
+                        <img
+                          src={comment.profile_image_url}
+                          alt={comment.username}
+                          className="w-8 h-8 rounded-full object-cover"
+                        />
+                      ) : (
+                        <CircleUserRound size={32} className="text-gray-400" />
+                      )}
+                      <div className="flex-1">
+                        <p className="text-xs font-semibold">{comment.username}</p>
+                        <p className="text-xs text-gray-600">{comment.content}</p>
+                      </div>
+                    </div>
+                  ))}
+                  {user && (
+                    <div className="flex gap-2 mt-2">
+                      <input
+                        type="text"
+                        placeholder="Write a comment..."
+                        className="flex-1 text-xs border rounded px-2 py-1"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            addComment(post.id, (e.target as HTMLInputElement).value);
+                            (e.target as HTMLInputElement).value = '';
+                          }
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
               <p className="text-xs text-gray-400">
                 {new Date(post.updated_at).toLocaleDateString()}
               </p>
