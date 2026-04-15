@@ -8,36 +8,57 @@ export default function RegisterPage() {
   const router = useRouter();
   const [account, setAccount] = useState('');
   const [password, setPassword] = useState('');
+  const [nickname, setNickname] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
     // Basic validation
-    if (!account.trim() || !password.trim()) {
-      setError('Account and password are required');
+    if (!account.trim() || !password.trim() || !nickname.trim()) {
+      setError('All fields are required');
       return;
     }
 
     setError('');
+    setLoading(true);
 
     try {
-      // Check if account already exists
-      const res = await fetch('/api/check-account', {
+      const res = await fetch('/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ account }),
+        body: JSON.stringify({
+          account,
+          pin: password,
+          username: nickname,
+        }),
       });
 
-      const data = await res.json();
-
-      if (data.exists) {
-        setError('Account already registered.');
+      // Read response text for debugging
+      const responseText = await res.text();
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch {
+        console.error('Non-JSON response from /api/register:', responseText);
+        setError('Server error. Please try again.');
         return;
       }
 
-      // Navigate to nickname page with account and pin as query params
-      router.push(`/nickname?account=${encodeURIComponent(account)}&pin=${encodeURIComponent(password)}`);
-    } catch {
+      console.log('/api/register response:', { status: res.status, data });
+
+      if (!res.ok) {
+        // Use error message from server if available
+        setError(data?.error || 'Registration failed. Please try again.');
+        return;
+      }
+
+      // Registration successful – redirect to login with success flag
+      router.push('/login?registered=true');
+    } catch (err) {
+      console.error('Fetch error:', err);
       setError('Network error. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -47,6 +68,7 @@ export default function RegisterPage() {
         <h1 className="mb-6 text-2xl font-bold text-gray-900">Create account</h1>
 
         <div>
+          {/* Account field */}
           <div className="mb-4">
             <label htmlFor="account" className="block text-sm font-medium text-gray-700">
               Account
@@ -58,11 +80,12 @@ export default function RegisterPage() {
               onChange={(e) => setAccount(e.target.value)}
               required
               className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-              placeholder="Choose an account name"
+              placeholder="Choose a new account"
             />
           </div>
 
-          <div className="mb-6">
+          {/* Password field */}
+          <div className="mb-4">
             <label htmlFor="password" className="block text-sm font-medium text-gray-700">
               Password
             </label>
@@ -77,13 +100,30 @@ export default function RegisterPage() {
             />
           </div>
 
+          {/* Nickname field (merged from nickname page) */}
+          <div className="mb-6">
+            <label htmlFor="nickname" className="block text-sm font-medium text-gray-700">
+              Nickname
+            </label>
+            <input
+              type="text"
+              id="nickname"
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+              required
+              className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+              placeholder="How should we call you?"
+            />
+          </div>
+
           {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
 
           <button
             onClick={handleRegister}
-            className="w-full rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            disabled={loading}
+            className="w-full rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-blue-300"
           >
-            Register
+            {loading ? 'Creating account...' : 'Register'}
           </button>
         </div>
 

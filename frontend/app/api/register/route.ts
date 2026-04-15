@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
-import bcrypt from 'bcrypt';
+//import bcrypt from 'bcrypt';
 import pool from '@/lib/db';
+import argon2 from 'argon2';
 
 export async function POST(request: Request) {
   try {
-    // Parse request body
+    // Parse request body (frontend uses account, pin, username)
     const { account, pin, username } = await request.json();
 
     // Validate required fields
@@ -15,48 +16,47 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check if account already exists in the database
-    const accountCheck = await pool.query(
-      'SELECT id FROM users WHERE account = $1',
+    // Check if email (account) already exists
+    const emailCheck = await pool.query(
+      'SELECT id FROM users WHERE email = $1',
       [account]
     );
 
-    if (accountCheck.rows.length > 0) {
+    if (emailCheck.rows.length > 0) {
       return NextResponse.json(
         { error: 'Account already exists' },
         { status: 409 }
       );
     }
 
-    // Check if nickname is already taken
-    const nicknameCheck = await pool.query(
-      'SELECT id FROM users WHERE nickname = $1',
+    // Check if username (nickname) already exists
+    const usernameCheck = await pool.query(
+      'SELECT id FROM users WHERE username = $1',
       [username]
     );
 
-    if (nicknameCheck.rows.length > 0) {
+    if (usernameCheck.rows.length > 0) {
       return NextResponse.json(
-        { error: 'That nickname has already been taken by someone.' },
+        { error: 'That nickname has already been taken.' },
         { status: 409 }
       );
     }
 
-    // Hash the password before storing it in the database
-    const hashedPin = await bcrypt.hash(pin, 10);
+    // Hash the password
+    //const hashedPassword = await bcrypt.hash(pin, 10);
+    const hashedPassword = await argon2.hash(pin);
 
-    // Insert the new user record
+    // Insert new user with correct column names
     await pool.query(
-      'INSERT INTO users (account, pin_hash, nickname) VALUES ($1, $2, $3)',
-      [account, hashedPin, username]
+      'INSERT INTO users (email, password_hash, username) VALUES ($1, $2, $3)',
+      [account, hashedPassword, username]
     );
 
-    // Return success response
     return NextResponse.json(
       { message: 'User registered successfully' },
       { status: 201 }
     );
   } catch (error) {
-    // Log unexpected errors and return a generic server error response
     console.error('Registration error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },

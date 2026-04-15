@@ -12,7 +12,8 @@ export async function POST(req: Request) {
 
   try {
     const result = await pool.query(
-      'SELECT id, username, password_hash, profile_image_url, n_posts FROM users WHERE username = $1',
+      //'SELECT id, username, password_hash, profile_image_url, n_posts FROM users WHERE username = $1',
+      'SELECT id, username, password_hash, profile_image_url, n_posts FROM users WHERE email = $1 OR username = $1',
       [username]
     );
 
