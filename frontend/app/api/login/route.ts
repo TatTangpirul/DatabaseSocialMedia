@@ -11,10 +11,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    // const result = await pool.query(
-    //   'SELECT id, username, password_hash, profile_image_url, n_posts, n_likes FROM users WHERE username = $1',
-    //   [username]
-    // );
+    // Support login with either email or username, and include total likes count
     const result = await pool.query(
       `SELECT 
         u.id, 
@@ -25,7 +22,7 @@ export async function POST(req: Request) {
         COALESCE(SUM(p.likes_count), 0) AS n_likes
       FROM users u
       LEFT JOIN posts p ON p.user_id = u.id
-      WHERE u.username = $1
+      WHERE u.email = $1 OR u.username = $1
       GROUP BY u.id, u.username, u.password_hash, u.profile_image_url, u.n_posts`,
       [username]
     );
