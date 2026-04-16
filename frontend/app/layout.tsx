@@ -1,15 +1,15 @@
 'use client';
 import "./globals.css";
-import TopBar from "./MainComponent/TopBar";
 import { AuthProvider } from "./context/AuthContext";
 import { usePathname } from 'next/navigation';
+import { FeedProvider } from "./context/FeedContext";
+import { TopBar } from "./MainComponent/TopBar"
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-
     const pathname = usePathname();
     const noTopBarPaths = ['/login', '/register'];
     const showTopBar = !noTopBarPaths.includes(pathname);
@@ -19,8 +19,10 @@ export default function RootLayout({
       <body className="flex flex-col justify-center gap-4">
         <div className="flex flex-col gap-4 items-center">
           <AuthProvider>
-            {showTopBar && <TopBar />}
-            {children}
+              <FeedProvider>
+                  {showTopBar && <TopBar />}
+                  {children}
+              </FeedProvider>
           </AuthProvider>
         </div>
       </body>

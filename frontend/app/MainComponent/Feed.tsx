@@ -6,6 +6,7 @@ import { CircleUserRound, ImageIcon, SquareUserRound, Heart, MessageCircle, More
 import { useAuth } from '../context/AuthContext';
 import PostForm from './PostForm';
 import { useRouter } from 'next/navigation';
+import { useFeed } from '../context/FeedContext';
 
 interface Post {
   id: number;
@@ -41,7 +42,7 @@ export default function Feed() {
   const [loading, setLoading] = useState(true);
   const [hoveredPost, setHoveredPost] = useState<number | null>(null);
   const [menuOpen, setMenuOpen] = useState<number | null>(null);
-  const [sortType, setSortType] = useState<'time' | 'popularity'>('time');
+  const { sortType } = useFeed();
 
   async function fetchPosts() {
     try {
@@ -170,28 +171,6 @@ export default function Feed() {
 
   return (
     <div className="">
-      <div className="flex justify-end gap-3 mb-4 w-150">
-        <button
-          onClick={() => setSortType('time')}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-            sortType === 'time'
-              ? 'bg-blue-500 text-white shadow-md'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          }`}
-        >
-          🕒 sorted by time
-        </button>
-        <button
-          onClick={() => setSortType('popularity')}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-            sortType === 'popularity'
-              ? 'bg-orange-500 text-white shadow-md'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          }`}
-        >
-          🔥 sorted by popularity
-        </button>
-      </div>
 
       { user ? (
         <div className="w-150 bg-white p-4 rounded-lg shadow-lg space-y-4 mb-6">

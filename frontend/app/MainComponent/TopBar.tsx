@@ -1,14 +1,28 @@
 'use client';
 
 import Link from 'next/link';
-import { Send, Settings, Sun, Moon, Search } from 'lucide-react';
+import { Send, Settings, Sun, Moon, Search, ListFilterPlus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useFeed } from '../context/FeedContext';
 import ProfileDropdown from './ProfileDropdown';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
-export default function TopBar() {
+export function TopBar() {
     const { user } = useAuth();
+    const { sortType, setSortType } = useFeed();
     const [darkMode, setDarkMode] = useState(false);
+    const [filterOpen, setFilterOpen] = useState(false);
+    const filterRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        function handleClickOutside(e: MouseEvent) {
+            if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+                setFilterOpen(false);
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     return (
         <div id="top" className="fixed top-0 left-0 right-0 bg-white z-50 shadow h-[60px]">
@@ -39,22 +53,42 @@ export default function TopBar() {
                                 )}
                             </div>
                         </button>
-                        <div className="flex items-center p-2 h-10 bg-gray-200 rounded-md cursor-pointer hover:bg-gray-300">
-                            <Send size={20} className="text-gray-600" />
+
+                        {/* Filter dropdown */}
+                        <div ref={filterRef} className="relative">
+                            <div
+                                onClick={() => setFilterOpen(!filterOpen)}
+                                className={`flex items-center p-2 h-10 rounded-md cursor-pointer hover:bg-gray-300 ${filterOpen ? 'bg-gray-300' : 'bg-gray-200'}`}
+                            >
+                                <ListFilterPlus size={20} className="text-gray-600" />
+                            </div>
+                            {filterOpen && (
+                                <div className="absolute right-0 top-full mt-2 w-44 bg-white rounded-md shadow-lg border border-gray-100 z-50">
+                                    <button
+                                        onClick={() => { setSortType('time'); setFilterOpen(false); }}
+                                        className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 hover:bg-gray-50 ${sortType === 'time' ? 'text-blue-600 font-semibold' : 'text-gray-700'}`}
+                                    >
+                                        🕒 Sort by time
+                                    </button>
+                                    <button
+                                        onClick={() => { setSortType('popularity'); setFilterOpen(false); }}
+                                        className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 hover:bg-gray-50 ${sortType === 'popularity' ? 'text-orange-500 font-semibold' : 'text-gray-700'}`}
+                                    >
+                                        🔥 Sort by popularity
+                                    </button>
+                                </div>
+                            )}
                         </div>
+
                         <div className="flex items-center p-2 h-10 bg-gray-200 rounded-md cursor-pointer hover:bg-gray-300">
                             <Settings size={20} className="text-gray-600" />
                         </div>
                         {user ? (
-                            <>
-                                <ProfileDropdown />
-                            </>
+                            <ProfileDropdown />
                         ) : null}
                     </div>
-
                 </div>
-                
-                {/* Login buttons - positioned at the right end of the screen */}
+
                 {!user && (
                     <div className="absolute right-4 h-full flex items-center gap-2">
                         <Link

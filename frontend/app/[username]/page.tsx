@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { CircleUserRound, Heart, MessageCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useFeed } from '../context/FeedContext';
 
 interface Post {
     id: number;
@@ -23,7 +24,7 @@ export default function UserPage() {
     const { username } = useParams();
     const [posts, setPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
-    const [sortType, setSortType] = useState<'time' | 'popularity'>('time');
+    const { sortType } = useFeed();
 
     async function fetchUserPosts() {
         setLoading(true);
@@ -97,29 +98,6 @@ export default function UserPage() {
 
     return (
         <div className="flex flex-col items-center gap-4 px-4">
-            {/* 排序按钮 */}
-            <div className="flex justify-end gap-3 w-150 mt-4">
-                <button
-                    onClick={() => setSortType('time')}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                        sortType === 'time'
-                            ? 'bg-blue-500 text-white shadow-md'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    }`}
-                >
-                    🕒 Latest
-                </button>
-                <button
-                    onClick={() => setSortType('popularity')}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                        sortType === 'popularity'
-                            ? 'bg-orange-500 text-white shadow-md'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    }`}
-                >
-                    🔥 Hottest
-                </button>
-            </div>
 
             {/* <h1 className="text-xl font-bold text-gray-800">{username}'s posts</h1> */}
             {posts.length === 0 ? (

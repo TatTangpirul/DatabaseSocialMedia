@@ -3,6 +3,9 @@ import pool from '@/lib/db';
 
 export async function GET(req: Request, { params }: { params: Promise<{ username: string }> }) {
     const { username } = await params;
+    const { searchParams } = new URL(req.url);
+    const sort = searchParams.get('sort') || 'time';
+    const orderBy = sort === 'popularity' ? 'p.likes_count DESC' : 'p.created_at DESC';
 
     try {
         const userResult = await pool.query(
@@ -24,7 +27,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ username
             FROM posts p
             JOIN users u ON p.user_id = u.id
             WHERE u.username = $1
-            ORDER BY p.created_at DESC`,
+            ORDER BY ${orderBy}`,
             [username]
         );
 
