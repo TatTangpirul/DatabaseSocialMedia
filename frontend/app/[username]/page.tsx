@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { CircleUserRound, Heart, MessageCircle } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 interface Post {
     id: number;
@@ -13,32 +14,113 @@ interface Post {
     updated_at: string;
     username: string;
     profile_image_url: string;
+    liked?: boolean;
+    likeLoading?: boolean;
 }
 
 export default function UserPage() {
+    const { user } = useAuth();
     const { username } = useParams();
     const [posts, setPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
+    const [sortType, setSortType] = useState<'time' | 'popularity'>('time');
+
+    async function fetchUserPosts() {
+        setLoading(true);
+        try {
+            const res = await fetch(`/api/users/${username}?sort=${sortType}`);
+            const data = await res.json();
+            if (data.success) {
+                const postsWithLikes = await Promise.all(
+                    data.posts.map(async (post: Post) => {
+                        if (!user) return { ...post, liked: false };
+                        try {
+                            const likeRes = await fetch(`/api/posts/${post.id}/like?userId=${user.id}`);
+                            const likeData = await likeRes.json();
+                            return { ...post, liked: likeData.liked };
+                        } catch {
+                            return { ...post, liked: false };
+                        }
+                    })
+                );
+                setPosts(postsWithLikes);
+            }
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    }
 
     useEffect(() => {
-        async function fetchUserPosts() {
-            try {
-                const res = await fetch(`/api/users/${username}`);
-                const data = await res.json();
-                if (data.success) setPosts(data.posts);
-            } catch (error) {
-                console.error(error);
-            } finally {
-                setLoading(false);
-            }
-        }
         fetchUserPosts();
-    }, [username]);
+    }, [username, sortType, user]);
+
+    async function toggleLike(postId: number) {
+        if (!user) return;
+
+        const currentPost = posts.find(p => p.id === postId);
+        if (currentPost?.likeLoading) return;
+
+        setPosts(posts.map(p =>
+            p.id === postId ? { ...p, likeLoading: true } : p
+        ));
+
+        try {
+            const response = await fetch(`/api/posts/${postId}/like`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: user.id }),
+            });
+            const data = await response.json();
+            if (data.success) {
+                setPosts(prevPosts => prevPosts.map(p =>
+                    p.id === postId
+                        ? {
+                            ...p,
+                            liked: data.liked,
+                            likes_count: data.liked ? p.likes_count + 1 : p.likes_count - 1,
+                            likeLoading: false
+                        }
+                        : p
+                ));
+            }
+        } catch (error) {
+            console.error('Error toggling like:', error);
+            setPosts(posts.map(p =>
+                p.id === postId ? { ...p, likeLoading: false } : p
+            ));
+        }
+    }
 
     if (loading) return <div className="p-8">Loading...</div>;
 
     return (
         <div className="flex flex-col items-center gap-4 px-4">
+            {/* 排序按钮 */}
+            <div className="flex justify-end gap-3 w-150 mt-4">
+                <button
+                    onClick={() => setSortType('time')}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                        sortType === 'time'
+                            ? 'bg-blue-500 text-white shadow-md'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                >
+                    🕒 Latest
+                </button>
+                <button
+                    onClick={() => setSortType('popularity')}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                        sortType === 'popularity'
+                            ? 'bg-orange-500 text-white shadow-md'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                >
+                    🔥 Hottest
+                </button>
+            </div>
+
             {/* <h1 className="text-xl font-bold text-gray-800">{username}'s posts</h1> */}
             {posts.length === 0 ? (
                 <p className="text-gray-500 text-sm">No posts yet.</p>
@@ -62,9 +144,17 @@ export default function UserPage() {
                         )}
                         <p className="text-sm text-gray-600">{post.content}</p>
                         <div className="flex items-center gap-4">
-                            <span className="flex items-center gap-1 text-sm text-gray-500">
-                                <Heart size={16} /> {post.likes_count}
-                            </span>
+                            <button 
+                                onClick={() => toggleLike(post.id)}
+                                disabled={post.likeLoading}
+                                className={`flex items-center gap-1 text-sm ${post.likeLoading ? 'opacity-50' : ''}`}
+                            >
+                                <Heart 
+                                    size={16} 
+                                    className={post.liked && post.likes_count > 0 ? 'fill-red-500 text-red-500' : 'text-gray-500'} 
+                                />
+                                <span className="text-gray-500">{post.likes_count}</span>
+                            </button>
                             <span className="flex items-center gap-1 text-sm text-gray-500">
                                 <MessageCircle size={16} /> {post.comments_count}
                             </span>
