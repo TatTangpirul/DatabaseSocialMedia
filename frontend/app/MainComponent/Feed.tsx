@@ -250,7 +250,7 @@ export default function Feed() {
                 </button>
                 <button 
                   onClick={() => toggleComments(post.id)}
-                  className="flex items-center gap-1 text-sm"
+                  className="flex items-center gap-1 text-sm cursor-pointer"
                 >
                   <MessageCircle size={16} className="text-gray-500" />
                   <span className="text-gray-500">{post.comments_count}</span>
@@ -276,11 +276,11 @@ export default function Feed() {
                     </div>
                   ))}
                   {user && (
-                    <div className="flex gap-2 mt-2">
+                    <div className="flex gap-2 mt-0">
                       <input
                         type="text"
                         placeholder="Write a comment..."
-                        className="flex-1 text-xs border rounded px-2 py-1"
+                        className="flex-1 text-xs rounded px-2 py-1"
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
                             addComment(post.id, (e.target as HTMLInputElement).value);
