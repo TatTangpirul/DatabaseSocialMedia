@@ -41,10 +41,11 @@ export default function Feed() {
   const [loading, setLoading] = useState(true);
   const [hoveredPost, setHoveredPost] = useState<number | null>(null);
   const [menuOpen, setMenuOpen] = useState<number | null>(null);
+  const [sortType, setSortType] = useState<'time' | 'popularity'>('time');
 
   async function fetchPosts() {
     try {
-      const response = await fetch('/api/posts');
+      const response = await fetch(`/api/posts?sort=${sortType}`);
       const data = await response.json();
       if (data.success) {
         const postsWithLikes = await Promise.all(
@@ -67,9 +68,10 @@ export default function Feed() {
       setLoading(false);
     }
   }
+
   useEffect(() => {
-      fetchPosts();
-  }, [user]);
+    fetchPosts();
+  }, [user, sortType]);
 
   async function toggleLike(postId: number) {
     if (!user) return;
@@ -168,13 +170,35 @@ export default function Feed() {
 
   return (
     <div className="">
+      <div className="flex justify-end gap-3 mb-4 w-150">
+        <button
+          onClick={() => setSortType('time')}
+          className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+            sortType === 'time'
+              ? 'bg-blue-500 text-white shadow-md'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+          }`}
+        >
+          🕒 sorted by time
+        </button>
+        <button
+          onClick={() => setSortType('popularity')}
+          className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+            sortType === 'popularity'
+              ? 'bg-orange-500 text-white shadow-md'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+          }`}
+        >
+          🔥 sorted by popularity
+        </button>
+      </div>
+
       { user ? (
         <div className="w-150 bg-white p-4 rounded-lg shadow-lg space-y-4 mb-6">
           <PostForm onPostSuccess={fetchPosts} />
         </div>
       ) : null}
 
-      {/* Posts List */}
       <div className="">
         {posts.length === 0 ? (
           <p className="text-gray-500 text-sm">No posts yet.</p>
@@ -198,14 +222,14 @@ export default function Feed() {
                   {menuOpen === post.id && (
                     <div className="absolute right-0 mt-1 w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden">
                       <button
-                        onClick={() => { /* your edit handler */ setMenuOpen(null); }}
+                        onClick={() => { setMenuOpen(null); }}
                         className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                       >
                         <Pencil size={14} />
                         Edit post
                       </button>
                       <button
-                        onClick={() => { /* your delete handler */ setMenuOpen(null); }}
+                        onClick={() => { setMenuOpen(null); }}
                         className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50 flex items-center gap-2"
                       >
                         <Trash2 size={14} />
