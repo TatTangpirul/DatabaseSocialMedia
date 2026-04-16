@@ -1,13 +1,26 @@
 // app/api/posts/route.ts
 import { NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import pool from '@/lib/db';
 import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const result = await pool.query(
-      `SELECT 
+    const searchParams = request.nextUrl.searchParams;
+    const sort = searchParams.get('sort') || 'time';
+    
+    let orderBy = '';
+    if (sort === 'time') {
+      orderBy = 'ORDER BY p.created_at DESC';
+    } else if (sort === 'popularity') {
+      orderBy = 'ORDER BY p.likes_count DESC';
+    } else {
+      orderBy = 'ORDER BY p.created_at DESC';
+    }
+    
+    const query = `
+      SELECT 
         p.id,
         p.content,
         p.image_url,
@@ -20,8 +33,10 @@ export async function GET() {
         u.profile_image_url
       FROM posts p
       JOIN users u ON p.user_id = u.id
-      ORDER BY p.updated_at DESC`
-    );
+      ${orderBy}
+    `;
+    
+    const result = await pool.query(query);
     
     return NextResponse.json({
       success: true,
