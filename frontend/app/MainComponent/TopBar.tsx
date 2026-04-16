@@ -1,11 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { Send, Settings, Sun, Moon, Search, ListFilterPlus } from 'lucide-react';
+import { Settings, Sun, Moon, Search, ListFilterPlus, CircleUserRound } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useFeed } from '../context/FeedContext';
 import ProfileDropdown from './ProfileDropdown';
 import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { searchUsers, SearchResult } from '@/lib/util/searchHandler';
 
 export function TopBar() {
     const { user } = useAuth();
@@ -13,6 +15,21 @@ export function TopBar() {
     const [darkMode, setDarkMode] = useState(false);
     const [filterOpen, setFilterOpen] = useState(false);
     const filterRef = useRef<HTMLDivElement>(null);
+    const router = useRouter();
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+    const [searchOpen, setSearchOpen] = useState(false);
+    const searchRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        function handleClickOutside(e: MouseEvent) {
+            if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+                setSearchOpen(false);
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     useEffect(() => {
         function handleClickOutside(e: MouseEvent) {
@@ -24,20 +41,63 @@ export function TopBar() {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    useEffect(() => {
+        const delay = setTimeout(async () => {
+            if (searchQuery.trim()) {
+                const results = await searchUsers(searchQuery);
+                setSearchResults(results);
+                setSearchOpen(true);
+            } else {
+                setSearchResults([]);
+                setSearchOpen(false);
+            }
+        }, 300); // debounce 300ms
+
+        return () => clearTimeout(delay);
+    }, [searchQuery]);
+
     return (
         <div id="top" className="fixed top-0 left-0 right-0 bg-white z-50 shadow h-[60px]">
             <div className="relative w-full h-full">
                 <div className="absolute left-1/2 transform -translate-x-1/2 w-[600px] h-full flex items-center justify-between gap-2">
-                    <div className='relative bg-gray-100 hover:bg-gray-300 rounded-lg h-9 w-70'>
-                        <input 
-                            type="text" 
-                            className="w-full h-full pl-2 pr-8 bg-transparent rounded-lg outline-none"
+                    <div ref={searchRef} className="relative bg-gray-100 hover:bg-gray-300 rounded-lg h-9 w-70">
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full h-full pl-2 pr-8 bg-transparent rounded-lg outline-none text-sm"
                             placeholder="Search..."
                         />
-                        <Search 
-                            size={15} 
-                            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-600" 
+                        <Search
+                            size={15}
+                            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-600"
                         />
+                        {searchOpen && searchResults.length > 0 && (
+                            <div className="absolute left-0 top-full mt-1 w-full bg-white rounded-md shadow-lg border border-gray-100 z-50">
+                                {searchResults.map((result) => (
+                                    <button
+                                        key={result.id}
+                                        onClick={() => {
+                                            router.push(`/${result.username}`);
+                                            setSearchQuery('');
+                                            setSearchOpen(false);
+                                        }}
+                                        className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-left"
+                                    >
+                                        {result.profile_image_url ? (
+                                            <img
+                                                src={result.profile_image_url}
+                                                alt={result.username}
+                                                className="w-7 h-7 rounded-full object-cover"
+                                            />
+                                        ) : (
+                                            <CircleUserRound size={28} className="text-gray-400" />
+                                        )}
+                                        <span className="text-sm text-gray-700">{result.username}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex items-center gap-2">
