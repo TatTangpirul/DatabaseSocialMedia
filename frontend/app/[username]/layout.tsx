@@ -3,6 +3,7 @@
 import AccountInfo from "../MainComponent/AccountInfo";
 import { useEffect, useState } from "react";
 import UserPage from "./page";
+import MostPopular from "../MainComponent/MostPopular";
 
 export default function HomePage() {
   const [user, setUser] = useState(null);
@@ -18,7 +19,7 @@ export default function HomePage() {
     <div className="flex flex-row items-start justify-center p-4 gap-8">
       <AccountInfo />
       <UserPage />
-      <AccountInfo />
+      <MostPopular />
     </div>
   );
 }

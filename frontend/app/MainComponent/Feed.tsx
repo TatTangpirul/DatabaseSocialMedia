@@ -1,7 +1,7 @@
 // app/components/Feed.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { CircleUserRound, ImageIcon, SquareUserRound, Heart, MessageCircle, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import PostForm from './PostForm';
@@ -44,7 +44,8 @@ export default function Feed() {
   const [menuOpen, setMenuOpen] = useState<number | null>(null);
   const { sortType } = useFeed();
 
-  async function fetchPosts() {
+  async function fetchPosts(loading = false) {
+    if(loading) setLoading(true);
     try {
       const response = await fetch(`/api/posts?sort=${sortType}`);
       const data = await response.json();
@@ -71,7 +72,7 @@ export default function Feed() {
   }
 
   useEffect(() => {
-    fetchPosts();
+    fetchPosts(true);
   }, [user, sortType]);
 
   async function toggleLike(postId: number) {
@@ -174,7 +175,7 @@ export default function Feed() {
 
       { user ? (
         <div className="w-150 bg-white p-4 rounded-lg shadow-lg space-y-4 mb-6">
-          <PostForm onPostSuccess={fetchPosts} />
+          <PostForm onPostSuccess={() => fetchPosts()} />
         </div>
       ) : null}
 
