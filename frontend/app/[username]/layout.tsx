@@ -1,24 +1,27 @@
 'use client';
 
 import AccountInfo from "../MainComponent/AccountInfo";
-import { useEffect, useState } from "react";
-import UserPage from "./page";
+import DailyHotPosts from "../MainComponent/DailyHotPosts";
 
-export default function HomePage() {
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    fetch('/api/me')
-      .then(res => res.json())
-      .then(data => setUser(data.user))
-      .catch(() => setUser(null));
-  }, []);
-
+export default function UserLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex flex-row items-start justify-center p-4 gap-8">
-      <AccountInfo />
-      <UserPage />
-      <AccountInfo />
+    <div className="flex flex-row items-start justify-center p-4 gap-6">
+
+          {/* Left column: Daily hottest posts */}
+      <aside className="w-72 shrink-0">
+        <DailyHotPosts />
+      </aside>
+      
+      {/* Middle column: Main content (user posts) */}
+      <main className="flex-1 max-w-2xl">
+        {children}
+      </main>
+
+      {/* Right column: Account info */}
+      <aside className="w-72 shrink-0">
+        <AccountInfo />
+      </aside>
+          
     </div>
   );
 }
