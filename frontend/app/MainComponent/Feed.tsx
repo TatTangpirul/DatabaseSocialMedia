@@ -1,39 +1,12 @@
-// app/components/Feed.tsx
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
 import { CircleUserRound, ImageIcon, SquareUserRound, Heart, MessageCircle, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { usePostInteractions, Post } from './usePostInteractions';
 import PostForm from './PostForm';
 import { useRouter } from 'next/navigation';
 import { useFeed } from '../context/FeedContext';
-
-interface Post {
-  id: number;
-  content: string;
-  image_url: string;
-  likes_count: number;
-  comments_count: number;
-  created_at: string;
-  updated_at: string;
-  user_id: number;
-  username: string;
-  profile_image_url: string;
-  liked?: boolean;
-  likeLoading?: boolean;
-  comments?: Comment[];
-  showComments?: boolean;
-}
-
-interface Comment {
-  id: number;
-  content: string;
-  created_at: string;
-  updated_at: string;
-  user_id: number;
-  username: string;
-  profile_image_url: string;
-}
 
 export default function Feed() {
   const { user } = useAuth();
