@@ -6,8 +6,10 @@ interface User {
   id: number;
   account: string;
   profile_image_url: string | null;
-  nickname: string;
-  n_posts: Int16Array;
+  bio: string | null;
+  n_posts: number;
+  n_likes: number;
+  followers: number;
 }
 
 interface AuthContextType {
@@ -20,17 +22,17 @@ const AuthContext = createContext<AuthContextType | null>(null);
 // AuthContext.tsx
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true); // add this
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch('/api/me')
       .then(res => res.json())
       .then(data => setUser(data.user))
       .catch(() => setUser(null))
-      .finally(() => setLoading(false)); // add this
+      .finally(() => setLoading(false)); 
   }, []);
 
-  if (loading) return null; // wait before rendering anything
+  if (loading) return null;
 
   return <AuthContext.Provider value={{ user, setUser }}>{children}</AuthContext.Provider>;
 }

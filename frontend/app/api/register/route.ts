@@ -1,12 +1,16 @@
 import { NextResponse } from 'next/server';
-import bcrypt from 'bcrypt';
+//import bcrypt from 'bcrypt';
 import pool from '@/lib/db';
+import argon2 from 'argon2';
 
 export async function POST(request: Request) {
   try {
-    const { account, pin, username } = await request.json();
+    // Parse request body (frontend uses account, pin, username)
+    const data = await request.json();
+    console.log(data);
+    const { account, pin, username } = data;
 
-    // Validate input
+    // Validate required fields
     if (!account || !pin || !username) {
       return NextResponse.json(
         { error: 'Account, password, and nickname are required' },
@@ -14,39 +18,40 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check if account already exists
-    const [existingAccount] = await pool.query(
-      'SELECT id FROM users WHERE account = ?',
+    // Check if email (account) already exists
+    const emailCheck = await pool.query(
+      'SELECT id FROM users WHERE email = $1',
       [account]
     );
 
-    if ((existingAccount as any[]).length > 0) {
+    if (emailCheck.rows.length > 0) {
       return NextResponse.json(
         { error: 'Account already exists' },
         { status: 409 }
       );
     }
 
-    // Check if nickname already exists
-    const [existingNickname] = await pool.query(
-      'SELECT id FROM users WHERE nickname = ?',
+    // Check if username (nickname) already exists
+    const usernameCheck = await pool.query(
+      'SELECT id FROM users WHERE username = $1',
       [username]
     );
 
-    if ((existingNickname as any[]).length > 0) {
+    if (usernameCheck.rows.length > 0) {
       return NextResponse.json(
-        { error: 'That nickname has already been taken by someone.' },
+        { error: 'That nickname has already been taken.' },
         { status: 409 }
       );
     }
 
-    // Hash password
-    const hashedPin = await bcrypt.hash(pin, 10);
+    // Hash the password
+    //const hashedPassword = await bcrypt.hash(pin, 10);
+    const hashedPassword = await argon2.hash(pin);
 
-    // Insert new user
+    // Insert new user with correct column names
     await pool.query(
-      'INSERT INTO users (account, pin_hash, nickname) VALUES (?, ?, ?)',
-      [account, hashedPin, username]
+      'INSERT INTO users (email, password_hash, username, n_posts) VALUES ($1, $2, $3, 0)',
+      [account, hashedPassword, username]
     );
 
     return NextResponse.json(
@@ -54,7 +59,7 @@ export async function POST(request: Request) {
       { status: 201 }
     );
   } catch (error) {
-    console.error(error);
+    console.error('Registration error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

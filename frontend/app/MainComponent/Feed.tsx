@@ -1,47 +1,139 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { CircleUserRound, Heart, MessageCircle } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { CircleUserRound, ImageIcon, SquareUserRound, Heart, MessageCircle, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { usePostInteractions, Post } from './usePostInteractions';
 import PostForm from './PostForm';
+import { useRouter } from 'next/navigation';
+import { useFeed } from '../context/FeedContext';
 
 export default function Feed() {
   const { user } = useAuth();
-  const { posts, setPosts, toggleLike, toggleComments, addComment } = usePostInteractions({
-    initialPosts: [],
-    userId: user?.id,
-  });
+  const router = useRouter();
+  const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hoveredPost, setHoveredPost] = useState<number | null>(null);
+  const [menuOpen, setMenuOpen] = useState<number | null>(null);
+  const { sortType } = useFeed();
+
+  async function fetchPosts(loading = false) {
+    if(loading) setLoading(true);
+    try {
+      const response = await fetch(`/api/posts?sort=${sortType}`);
+      const data = await response.json();
+      if (data.success) {
+        const postsWithLikes = await Promise.all(
+          data.posts.map(async (post: Post) => {
+            if (!user) return { ...post, liked: false };
+            try {
+              const likeRes = await fetch(`/api/posts/${post.id}/like?userId=${user.id}`);
+              const likeData = await likeRes.json();
+              return { ...post, liked: likeData.liked };
+            } catch {
+              return { ...post, liked: false };
+            }
+          })
+        );
+        setPosts(postsWithLikes);
+      }
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
-    async function fetchPosts() {
+    fetchPosts(true);
+  }, [user, sortType]);
+
+  async function toggleLike(postId: number) {
+    if (!user) return;
+    
+    const currentPost = posts.find(p => p.id === postId);
+    if (currentPost?.likeLoading) return;
+
+    setPosts(posts.map(p => 
+      p.id === postId ? { ...p, likeLoading: true } : p
+    ));
+
+    try {
+      const response = await fetch(`/api/posts/${postId}/like`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setPosts(prevPosts => prevPosts.map(p => 
+          p.id === postId 
+            ? { 
+                ...p, 
+                liked: data.liked, 
+                likes_count: data.liked ? p.likes_count + 1 : p.likes_count - 1,
+                likeLoading: false 
+              }
+            : p
+        ));
+      }
+    } catch (error) {
+      console.error('Error toggling like:', error);
+      setPosts(posts.map(p => 
+        p.id === postId ? { ...p, likeLoading: false } : p
+      ));
+    }
+  }
+
+  async function toggleComments(postId: number) {
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
+
+    if (!post.showComments && !post.comments) {
       try {
-        const response = await fetch('/api/posts');
+        const response = await fetch(`/api/posts/${postId}/comments`);
         const data = await response.json();
         if (data.success) {
-          const postsWithLikes = await Promise.all(
-            data.posts.map(async (post: Post) => {
-              if (!user) return { ...post, liked: false };
-              try {
-                const likeRes = await fetch(`/api/posts/${post.id}/like?userId=${user.id}`);
-                const likeData = await likeRes.json();
-                return { ...post, liked: likeData.liked };
-              } catch {
-                return { ...post, liked: false };
-              }
-            })
-          );
-          setPosts(postsWithLikes);
+          setPosts(prevPosts => prevPosts.map(p => 
+            p.id === postId ? { ...p, comments: data.comments, showComments: true } : p
+          ));
         }
       } catch (error) {
-        console.error('Error fetching posts:', error);
-      } finally {
-        setLoading(false);
+        console.error('Error fetching comments:', error);
       }
+    } else {
+      setPosts(prevPosts => prevPosts.map(p => 
+        p.id === postId ? { ...p, showComments: !p.showComments } : p
+      ));
     }
-    fetchPosts();
-  }, [user, setPosts]);
+  }
+
+  async function addComment(postId: number, content: string) {
+    if (!user || !content.trim()) return;
+
+    try {
+      const response = await fetch(`/api/posts/${postId}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, content }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setPosts(prevPosts => prevPosts.map(p => {
+          if (p.id === postId) {
+            return { 
+              ...p, 
+              comments: [data.comment, ...(p.comments || [])],
+              comments_count: p.comments_count + 1
+            };
+          }
+          return p;
+        }));
+      }
+    } catch (error) {
+      console.error('Error adding comment:', error);
+    }
+  }
 
   if (loading) {
     return (
@@ -53,9 +145,10 @@ export default function Feed() {
 
   return (
     <div className="">
+
       { user ? (
         <div className="w-150 bg-white p-4 rounded-lg shadow-lg space-y-4 mb-6">
-          <PostForm />
+          <PostForm onPostSuccess={() => fetchPosts()} />
         </div>
       ) : null}
 
@@ -64,18 +157,53 @@ export default function Feed() {
           <p className="text-gray-500 text-sm">No posts yet.</p>
         ) : (
           posts.map((post) => (
-            <div key={post.id} className="w-150 bg-white p-4 rounded-lg shadow-lg space-y-4 mb-6">
+            <div
+              key={post.id}
+              className="relative w-150 bg-white p-4 rounded-lg shadow-lg space-y-4 mb-6"
+              onMouseEnter={() => setHoveredPost(post.id)}
+              onMouseLeave={() => { setHoveredPost(null); setMenuOpen(null); }}
+            >
+              {hoveredPost === post.id && user?.account === post.username && (
+                <div className="absolute top-3 right-3">
+                  <button
+                    onClick={() => setMenuOpen(menuOpen === post.id ? null : post.id)}
+                    className="p-1 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600"
+                  >
+                    <MoreHorizontal size={18} />
+                  </button>
+
+                  {menuOpen === post.id && (
+                    <div className="absolute right-0 mt-1 w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden">
+                      <button
+                        onClick={() => { setMenuOpen(null); }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                      >
+                        <Pencil size={14} />
+                        Edit post
+                      </button>
+                      <button
+                        onClick={() => { setMenuOpen(null); }}
+                        className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50 flex items-center gap-2"
+                      >
+                        <Trash2 size={14} />
+                        Delete post
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
               <div className="flex items-center gap-2 mb-1">
                 {post.profile_image_url ? (
                   <img
                     src={post.profile_image_url}
                     alt={post.username}
-                    className="w-12 h-12 rounded-full object-cover"
+                    className="w-10 h-10 rounded-full object-cover cursor-pointer"
+                    onClick={() => router.push(`/${post.username}`)}
                   />
                 ) : (
-                  <CircleUserRound size={48} className="text-gray-600" />
+                  <CircleUserRound size={48} className="text-gray-600 cursor-pointer" onClick={() => router.push(`/${post.username}`)}/>
                 )}
-                <p className="font-semibold text-sm">{post.username}</p>
+                <p className="font-semibold text-sm cursor-pointer" onClick={() => router.push(`/${post.username}`)}>{post.username}</p>
               </div>
               {post.image_url && (
                 <img
@@ -84,12 +212,12 @@ export default function Feed() {
                   className="w-full object-cover rounded-md my-2"
                 />
               )}
-              <p className="text-xs text-gray-600 truncate">{post.content}</p>
+              <p className="text-sm text-gray-600 truncate mt-4">{post.content}</p>
               <div className="flex items-center gap-4 mt-2">
                 <button 
                   onClick={() => toggleLike(post.id)}
                   disabled={post.likeLoading}
-                  className={`flex items-center gap-1 text-sm ${post.likeLoading ? 'opacity-50' : ''}`}
+                  className={`flex items-center gap-1 text-sm cursor-pointer ${post.likeLoading ? 'opacity-50' : ''}`}
                 >
                   <Heart 
                     size={16} 
@@ -99,7 +227,7 @@ export default function Feed() {
                 </button>
                 <button 
                   onClick={() => toggleComments(post.id)}
-                  className="flex items-center gap-1 text-sm"
+                  className="flex items-center gap-1 text-sm cursor-pointer"
                 >
                   <MessageCircle size={16} className="text-gray-500" />
                   <span className="text-gray-500">{post.comments_count}</span>
@@ -125,11 +253,11 @@ export default function Feed() {
                     </div>
                   ))}
                   {user && (
-                    <div className="flex gap-2 mt-2">
+                    <div className="flex gap-2 mt-0">
                       <input
                         type="text"
                         placeholder="Write a comment..."
-                        className="flex-1 text-xs border rounded px-2 py-1"
+                        className="flex-1 text-xs rounded px-2 py-1"
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
                             addComment(post.id, (e.target as HTMLInputElement).value);
