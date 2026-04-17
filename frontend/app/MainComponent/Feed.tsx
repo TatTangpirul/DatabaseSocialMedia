@@ -1,39 +1,12 @@
-// app/components/Feed.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { CircleUserRound, ImageIcon, SquareUserRound, Heart, MessageCircle, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { usePostInteractions, Post } from './usePostInteractions';
 import PostForm from './PostForm';
 import { useRouter } from 'next/navigation';
 import { useFeed } from '../context/FeedContext';
-
-interface Post {
-  id: number;
-  content: string;
-  image_url: string;
-  likes_count: number;
-  comments_count: number;
-  created_at: string;
-  updated_at: string;
-  user_id: number;
-  username: string;
-  profile_image_url: string;
-  liked?: boolean;
-  likeLoading?: boolean;
-  comments?: Comment[];
-  showComments?: boolean;
-}
-
-interface Comment {
-  id: number;
-  content: string;
-  created_at: string;
-  updated_at: string;
-  user_id: number;
-  username: string;
-  profile_image_url: string;
-}
 
 export default function Feed() {
   const { user } = useAuth();
@@ -44,7 +17,8 @@ export default function Feed() {
   const [menuOpen, setMenuOpen] = useState<number | null>(null);
   const { sortType } = useFeed();
 
-  async function fetchPosts() {
+  async function fetchPosts(loading = false) {
+    if(loading) setLoading(true);
     try {
       const response = await fetch(`/api/posts?sort=${sortType}`);
       const data = await response.json();
@@ -71,7 +45,7 @@ export default function Feed() {
   }
 
   useEffect(() => {
-    fetchPosts();
+    fetchPosts(true);
   }, [user, sortType]);
 
   async function toggleLike(postId: number) {
@@ -174,7 +148,7 @@ export default function Feed() {
 
       { user ? (
         <div className="w-150 bg-white p-4 rounded-lg shadow-lg space-y-4 mb-6">
-          <PostForm onPostSuccess={fetchPosts} />
+          <PostForm onPostSuccess={() => fetchPosts()} />
         </div>
       ) : null}
 

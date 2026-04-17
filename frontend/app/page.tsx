@@ -1,26 +1,26 @@
 'use client';
 
+
 import Feed from "./MainComponent/Feed";
 import AccountInfo from "./MainComponent/AccountInfo";
-import DailyHotPosts from "./MainComponent/DailyHotPosts";
+import { useEffect, useState } from "react";
+import MostPopular from "./MainComponent/MostPopular";
 
 export default function HomePage() {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    fetch('/api/me')
+      .then(res => res.json())
+      .then(data => setUser(data.user))
+      .catch(() => setUser(null));
+  }, []);
+
   return (
-    <div className="flex flex-row items-start justify-center p-4 gap-6">
-      {/* Left column: Today's hottest posts */}
-      <aside className="w-72 shrink-0">
-        <DailyHotPosts />
-      </aside>
-
-      {/* Middle column: Main feed */}
-      <main className="flex-1 max-w-2xl">
-        <Feed />
-      </main>
-
-      {/* Right column: Account info */}
-      <aside className="w-72 shrink-0">
-        <AccountInfo />
-      </aside>
+    <div className="flex flex-row items-start justify-center p-4 gap-8">
+      <AccountInfo />
+      <Feed />
+      <MostPopular />
     </div>
   );
 }

@@ -2,20 +2,22 @@
 
 import { CircleUserRound, Home, Users, Newspaper, Calendar, MessageCircle, Bell, Settings } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 const menuItems = [
-    { icon: Home, label: 'Feed' },
-    { icon: Users, label: 'Connections' },
-    { icon: Newspaper, label: 'Latest News' },
-    { icon: Calendar, label: 'Events' },
-    { icon: MessageCircle, label: 'Groups' },
-    { icon: Bell, label: 'Notifications' },
-    { icon: Settings, label: 'Settings' },
+    { icon: Home, label: 'Feed', path: '/' },
+    { icon: Users, label: 'Connections', path: '/connections' },
+    { icon: Newspaper, label: 'Latest News', path: '/news' },
+    { icon: Calendar, label: 'Events', path: '/events' },
+    { icon: MessageCircle, label: 'Groups', path: '/groups' },
+    { icon: Bell, label: 'Notifications', path: '/notifications' },
+    { icon: Settings, label: 'Settings', path: '/settings' },
 ];
 
 export default function AccountInfo() {
     const { user } = useAuth();
     console.log(user);
+    const router = useRouter();
 
     return (
         <div className="w-64 bg-white rounded-lg shadow-lg overflow-hidden">
@@ -70,10 +72,11 @@ export default function AccountInfo() {
 
             {/* Menu */}
             <div className="px-4 py-3 space-y-1">
-                {menuItems.map(({ icon: Icon, label }) => (
+                {menuItems.map(({ icon: Icon, label, path }) => (
                     <button
                         key={label}
-                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700 cursor-pointer"
+                        onClick={() => router.push(path)} // Add this line
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700 cursor-pointer transition-colors"
                     >
                         <Icon size={20} />
                         <span className="font-semibold text-sm">{label}</span>
