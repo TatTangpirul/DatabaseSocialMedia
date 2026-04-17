@@ -3,21 +3,21 @@
 import { useEffect, useState } from 'react';
 import { CircleUserRound, Heart, MessageCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { usePostInteractions, Post } from './usePostInteractions';
-import PostForm from './PostForm';
+import { usePostInteractions, Post } from '../MainComponent/usePostInteractions';
 
-export default function Feed() {
+export default function UserPage({ params }: { params: { username: string } }) {
   const { user } = useAuth();
-  const { posts, setPosts, toggleLike, toggleComments, addComment } = usePostInteractions({
+  const { posts, toggleLike, toggleComments, addComment } = usePostInteractions({
     initialPosts: [],
     userId: user?.id,
   });
   const [loading, setLoading] = useState(true);
+  const [userProfile, setUserProfile] = useState<{ username: string; profile_image_url: string } | null>(null);
 
   useEffect(() => {
-    async function fetchPosts() {
+    async function fetchUserPosts() {
       try {
-        const response = await fetch('/api/posts');
+        const response = await fetch(`/api/users/${params.username}/posts`);
         const data = await response.json();
         if (data.success) {
           const postsWithLikes = await Promise.all(
@@ -32,16 +32,17 @@ export default function Feed() {
               }
             })
           );
+          setUserProfile(data.user);
           setPosts(postsWithLikes);
         }
       } catch (error) {
-        console.error('Error fetching posts:', error);
+        console.error('Error fetching user posts:', error);
       } finally {
         setLoading(false);
       }
     }
-    fetchPosts();
-  }, [user, setPosts]);
+    fetchUserPosts();
+  }, [user, params.username]);
 
   if (loading) {
     return (
@@ -53,11 +54,23 @@ export default function Feed() {
 
   return (
     <div className="">
-      { user ? (
-        <div className="w-150 bg-white p-4 rounded-lg shadow-lg space-y-4 mb-6">
-          <PostForm />
+      <div className="w-150 bg-white p-4 rounded-lg shadow-lg mb-6">
+        <div className="flex items-center gap-3">
+          {userProfile?.profile_image_url ? (
+            <img
+              src={userProfile.profile_image_url}
+              alt={userProfile.username}
+              className="w-16 h-16 rounded-full object-cover"
+            />
+          ) : (
+            <CircleUserRound size={64} className="text-gray-600" />
+          )}
+          <div>
+            <h1 className="text-xl font-bold">{userProfile?.username}</h1>
+            <p className="text-sm text-gray-500">{posts.length} posts</p>
+          </div>
         </div>
-      ) : null}
+      </div>
 
       <div className="">
         {posts.length === 0 ? (
@@ -84,7 +97,7 @@ export default function Feed() {
                   className="w-full object-cover rounded-md my-2"
                 />
               )}
-              <p className="text-xs text-gray-600 truncate">{post.content}</p>
+              <p className="text-xs text-gray-600">{post.content}</p>
               <div className="flex items-center gap-4 mt-2">
                 <button 
                   onClick={() => toggleLike(post.id)}
