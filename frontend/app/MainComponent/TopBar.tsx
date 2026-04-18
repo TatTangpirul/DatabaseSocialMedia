@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Settings, Sun, Moon, Search, ListFilterPlus, CircleUserRound } from 'lucide-react';
+import { Settings, Sun, Moon, Search, ListFilterPlus, CircleUserRound, Clock, Flame } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useFeed } from '../context/FeedContext';
 import ProfileDropdown from './ProfileDropdown';
@@ -89,8 +89,20 @@ export function TopBar() {
                             </div>
                             {filterOpen && (
                                 <div className="absolute right-0 top-full mt-2 w-44 bg-white dark:bg-slate-800 rounded-md shadow-lg border border-gray-100 dark:border-gray-700 z-50">
-                                    <button onClick={() => { setSortType('time'); setFilterOpen(false); }} className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-slate-700 ${sortType === 'time' ? 'text-blue-600 font-semibold' : 'text-gray-700 dark:text-gray-200'}`}>🕒 Sort by time</button>
-                                    <button onClick={() => { setSortType('popularity'); setFilterOpen(false); }} className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-slate-700 ${sortType === 'popularity' ? 'text-orange-500 font-semibold' : 'text-gray-700 dark:text-gray-200'}`}>🔥 Sort by popularity</button>
+                                    <button
+                                        onClick={() => { setSortType('time'); setFilterOpen(false); }}
+                                        className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer ${sortType === 'time' ? 'text-blue-600 font-semibold' : 'text-gray-700 dark:text-gray-200'}`}
+                                    >
+                                        <Clock size={14} />
+                                        Sort by time
+                                    </button>
+                                    <button
+                                        onClick={() => { setSortType('popularity'); setFilterOpen(false); }}
+                                        className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer ${sortType === 'popularity' ? 'text-orange-500 font-semibold' : 'text-gray-700 dark:text-gray-200'}`}
+                                    >
+                                        <Flame size={14} />
+                                        Sort by popularity
+                                    </button>
                                 </div>
                             )}
                         </div>
