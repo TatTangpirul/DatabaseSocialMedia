@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Settings, Sun, Moon, Search, ListFilterPlus, CircleUserRound } from 'lucide-react';
+import { Settings, Sun, Moon, Search, ListFilterPlus, CircleUserRound, Clock, Flame } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useFeed } from '../context/FeedContext';
 import ProfileDropdown from './ProfileDropdown';
@@ -126,15 +126,17 @@ export function TopBar() {
                                 <div className="absolute right-0 top-full mt-2 w-44 bg-white rounded-md shadow-lg border border-gray-100 z-50">
                                     <button
                                         onClick={() => { setSortType('time'); setFilterOpen(false); }}
-                                        className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 hover:bg-gray-50 ${sortType === 'time' ? 'text-blue-600 font-semibold' : 'text-gray-700'}`}
+                                        className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 hover:bg-gray-50 cursor-pointer ${sortType === 'time' ? 'text-blue-600 font-semibold' : 'text-gray-700'}`}
                                     >
-                                        🕒 Sort by time
+                                        <Clock size={14} />
+                                        Sort by time
                                     </button>
                                     <button
                                         onClick={() => { setSortType('popularity'); setFilterOpen(false); }}
-                                        className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 hover:bg-gray-50 ${sortType === 'popularity' ? 'text-orange-500 font-semibold' : 'text-gray-700'}`}
+                                        className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 hover:bg-gray-50 cursor-pointer ${sortType === 'popularity' ? 'text-orange-500 font-semibold' : 'text-gray-700'}`}
                                     >
-                                        🔥 Sort by popularity
+                                        <Flame size={14} />
+                                        Sort by popularity
                                     </button>
                                 </div>
                             )}
