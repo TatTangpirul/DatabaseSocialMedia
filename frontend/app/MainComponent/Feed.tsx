@@ -10,12 +10,17 @@ import { useFeed } from '../context/FeedContext';
 
 export default function Feed() {
   const { user } = useAuth();
+  const { sortType } = useFeed();
   const router = useRouter();
-  const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [hoveredPost, setHoveredPost] = useState<number | null>(null);
   const [menuOpen, setMenuOpen] = useState<number | null>(null);
-  const { sortType } = useFeed();
+  const {
+      posts, setPosts,
+      editingPost, setEditingPost,
+      editContent, setEditContent,
+      toggleLike, toggleComments, addComment, deletePost, editPost,
+  } = usePostInteractions({ initialPosts: [], userId: user?.id });
 
   async function fetchPosts(loading = false) {
     if(loading) setLoading(true);
@@ -48,93 +53,6 @@ export default function Feed() {
     fetchPosts(true);
   }, [user, sortType]);
 
-  async function toggleLike(postId: number) {
-    if (!user) return;
-    
-    const currentPost = posts.find(p => p.id === postId);
-    if (currentPost?.likeLoading) return;
-
-    setPosts(posts.map(p => 
-      p.id === postId ? { ...p, likeLoading: true } : p
-    ));
-
-    try {
-      const response = await fetch(`/api/posts/${postId}/like`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id }),
-      });
-      const data = await response.json();
-      if (data.success) {
-        setPosts(prevPosts => prevPosts.map(p => 
-          p.id === postId 
-            ? { 
-                ...p, 
-                liked: data.liked, 
-                likes_count: data.liked ? p.likes_count + 1 : p.likes_count - 1,
-                likeLoading: false 
-              }
-            : p
-        ));
-      }
-    } catch (error) {
-      console.error('Error toggling like:', error);
-      setPosts(posts.map(p => 
-        p.id === postId ? { ...p, likeLoading: false } : p
-      ));
-    }
-  }
-
-  async function toggleComments(postId: number) {
-    const post = posts.find(p => p.id === postId);
-    if (!post) return;
-
-    if (!post.showComments && !post.comments) {
-      try {
-        const response = await fetch(`/api/posts/${postId}/comments`);
-        const data = await response.json();
-        if (data.success) {
-          setPosts(prevPosts => prevPosts.map(p => 
-            p.id === postId ? { ...p, comments: data.comments, showComments: true } : p
-          ));
-        }
-      } catch (error) {
-        console.error('Error fetching comments:', error);
-      }
-    } else {
-      setPosts(prevPosts => prevPosts.map(p => 
-        p.id === postId ? { ...p, showComments: !p.showComments } : p
-      ));
-    }
-  }
-
-  async function addComment(postId: number, content: string) {
-    if (!user || !content.trim()) return;
-
-    try {
-      const response = await fetch(`/api/posts/${postId}/comments`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id, content }),
-      });
-      const data = await response.json();
-      if (data.success) {
-        setPosts(prevPosts => prevPosts.map(p => {
-          if (p.id === postId) {
-            return { 
-              ...p, 
-              comments: [data.comment, ...(p.comments || [])],
-              comments_count: p.comments_count + 1
-            };
-          }
-          return p;
-        }));
-      }
-    } catch (error) {
-      console.error('Error adding comment:', error);
-    }
-  }
-
   if (loading) {
     return (
       <div className="w-150 bg-white p-4 rounded shadow-lg">
@@ -164,33 +82,36 @@ export default function Feed() {
               onMouseLeave={() => { setHoveredPost(null); setMenuOpen(null); }}
             >
               {hoveredPost === post.id && user?.account === post.username && (
-                <div className="absolute top-3 right-3">
-                  <button
-                    onClick={() => setMenuOpen(menuOpen === post.id ? null : post.id)}
-                    className="p-1 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600"
-                  >
-                    <MoreHorizontal size={18} />
-                  </button>
+                  <div className="absolute top-3 right-3">
+                      <button
+                          onClick={(e) => { 
+                              e.stopPropagation();
+                              setMenuOpen(menuOpen === post.id ? null : post.id); 
+                          }}
+                          className="p-1 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600"
+                      >
+                          <MoreHorizontal size={18} />
+                      </button>
+                  </div>
+              )}
 
-                  {menuOpen === post.id && (
-                    <div className="absolute right-0 mt-1 w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden">
+              {menuOpen === post.id && (
+                  <div className="absolute top-10 right-3 w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden">
                       <button
-                        onClick={() => { setMenuOpen(null); }}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                          onClick={() => { setEditingPost(post.id); setEditContent(post.content); setMenuOpen(null); }}
+                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                       >
-                        <Pencil size={14} />
-                        Edit post
+                          <Pencil size={14} />
+                          Edit post
                       </button>
                       <button
-                        onClick={() => { setMenuOpen(null); }}
-                        className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50 flex items-center gap-2"
+                          onClick={() => { deletePost(post.id); setMenuOpen(null); }}
+                          className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50 flex items-center gap-2"
                       >
-                        <Trash2 size={14} />
-                        Delete post
+                          <Trash2 size={14} />
+                          Delete post
                       </button>
-                    </div>
-                  )}
-                </div>
+                  </div>
               )}
               <div className="flex items-center gap-2 mb-1">
                 {post.profile_image_url ? (
@@ -212,7 +133,33 @@ export default function Feed() {
                   className="w-full object-cover rounded-md my-2"
                 />
               )}
-              <p className="text-sm text-gray-600 truncate mt-4">{post.content}</p>
+              {editingPost === post.id ? (
+                  <div className="flex flex-col gap-2">
+                      <textarea
+                          value={editContent}
+                          onChange={(e) => setEditContent(e.target.value)}
+                          className="w-full text-sm border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                          rows={3}
+                      />
+                      <div className="flex gap-2 justify-end">
+                          <button
+                              onClick={() => { setEditingPost(null); setEditContent(''); }}
+                              className="px-3 py-1 text-sm text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200"
+                          >
+                              Cancel
+                          </button>
+                          <button
+                              onClick={() => editPost(post.id)}
+                              disabled={!editContent.trim()}
+                              className="px-3 py-1 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+                          >
+                              Save
+                          </button>
+                      </div>
+                  </div>
+              ) : (
+                  <p className="text-sm text-gray-600">{post.content}</p>
+              )}
               <div className="flex items-center gap-4 mt-2">
                 <button 
                   onClick={() => toggleLike(post.id)}

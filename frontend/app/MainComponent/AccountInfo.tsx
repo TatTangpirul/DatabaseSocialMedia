@@ -4,20 +4,19 @@ import { CircleUserRound, Home, Users, Newspaper, Calendar, MessageCircle, Bell,
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'next/navigation';
 
-const menuItems = [
-    { icon: Home, label: 'Feed', path: '/' },
-    { icon: Users, label: 'Connections', path: '/connections' },
-    { icon: Newspaper, label: 'Latest News', path: '/news' },
-    { icon: Calendar, label: 'Events', path: '/events' },
-    { icon: MessageCircle, label: 'Groups', path: '/groups' },
-    { icon: Bell, label: 'Notifications', path: '/notifications' },
-    { icon: Settings, label: 'Settings', path: '/settings' },
-];
-
 export default function AccountInfo() {
     const { user } = useAuth();
     console.log(user);
     const router = useRouter();
+    const menuItems = [
+        { icon: Home, label: 'Feed', path: '/' },
+        { icon: Newspaper, label: 'Your Posts', path: `/${user?.account}` },
+        { icon: Settings, label: 'Settings', path: '/settings' },
+        // { icon: Users, label: 'Connections', path: '/connections' },
+        // { icon: Calendar, label: 'Events', path: '/events' },
+        // { icon: MessageCircle, label: 'Groups', path: '/groups' },
+        // { icon: Bell, label: 'Notifications', path: '/notifications' },
+    ];
 
     return (
         <div className="w-64 bg-white rounded-lg shadow-lg overflow-hidden">

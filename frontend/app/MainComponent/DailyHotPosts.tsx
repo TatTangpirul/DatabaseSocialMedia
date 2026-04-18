@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Flame, Heart, CircleUserRound, Crown, Wheat } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface HotPost {
   id: number;
@@ -14,6 +15,7 @@ interface HotPost {
 export default function DailyHotPosts() {
   const [posts, setPosts] = useState<HotPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     async function fetchHotPosts() {
@@ -102,10 +104,13 @@ export default function DailyHotPosts() {
                   <img
                     src={post.profile_image_url}
                     alt={post.username}
-                    className="w-8 h-8 rounded-full object-cover"
+                    className="w-8 h-8 rounded-full object-cover cursor-pointer"
+                    onClick={() => router.push(`/${post.username}`)}
                   />
                 ) : (
-                  <CircleUserRound size={32} className="text-gray-400" />
+                  <CircleUserRound size={32} className="text-gray-400 cursor-pointer"
+                    onClick={() => router.push(`/${post.username}`)}
+                  />
                 )}
 
                 {/* Crown on top for 1st place */}
@@ -119,11 +124,13 @@ export default function DailyHotPosts() {
 
               {/* Content */}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-800 truncate">
-                  @{post.username}
+                <p className="text-sm font-medium text-gray-800 truncate cursor-pointer hover:underline"
+                    onClick={() => router.push(`/${post.username}`)}
+                >
+                    <b>{post.username}</b>
                 </p>
-                <p className="text-sm text-gray-600 line-clamp-2 mt-0.5">
-                  {post.content || <span className="text-gray-400 italic">(Image post)</span>}
+                <p className="text-sm text-gray-600 line-clamp-1 mt-0.5 overflow-hidden">
+                    {post.content || <span className="text-gray-400 italic">(Image post)</span>}
                 </p>
                 <div className="flex items-center gap-1 mt-1">
                   <Heart size={14} className="fill-red-500 text-red-500" />

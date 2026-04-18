@@ -36,6 +36,8 @@ interface UsePostInteractionsOptions {
 
 export function usePostInteractions({ initialPosts, userId }: UsePostInteractionsOptions) {
   const [posts, setPosts] = useState<Post[]>(initialPosts);
+  const [editingPost, setEditingPost] = useState<number | null>(null);
+  const [editContent, setEditContent] = useState('');
 
   const toggleLike = useCallback(async (postId: number) => {
     if (!userId) return;
@@ -43,7 +45,7 @@ export function usePostInteractions({ initialPosts, userId }: UsePostInteraction
     const currentPost = posts.find(p => p.id === postId);
     if (currentPost?.likeLoading) return;
 
-    setPosts(prev => prev.map(p => 
+    setPosts(prev => prev.map(p =>
       p.id === postId ? { ...p, likeLoading: true } : p
     ));
 
@@ -55,20 +57,15 @@ export function usePostInteractions({ initialPosts, userId }: UsePostInteraction
       });
       const data = await response.json();
       if (data.success) {
-        setPosts(prevPosts => prevPosts.map(p => 
-          p.id === postId 
-            ? { 
-                ...p, 
-                liked: data.liked, 
-                likes_count: data.liked ? p.likes_count + 1 : p.likes_count - 1,
-                likeLoading: false 
-              }
+        setPosts(prev => prev.map(p =>
+          p.id === postId
+            ? { ...p, liked: data.liked, likes_count: data.liked ? p.likes_count + 1 : p.likes_count - 1, likeLoading: false }
             : p
         ));
       }
     } catch (error) {
       console.error('Error toggling like:', error);
-      setPosts(prev => prev.map(p => 
+      setPosts(prev => prev.map(p =>
         p.id === postId ? { ...p, likeLoading: false } : p
       ));
     }
@@ -83,7 +80,7 @@ export function usePostInteractions({ initialPosts, userId }: UsePostInteraction
         const response = await fetch(`/api/posts/${postId}/comments`);
         const data = await response.json();
         if (data.success) {
-          setPosts(prev => prev.map(p => 
+          setPosts(prev => prev.map(p =>
             p.id === postId ? { ...p, comments: data.comments, showComments: true } : p
           ));
         }
@@ -91,7 +88,7 @@ export function usePostInteractions({ initialPosts, userId }: UsePostInteraction
         console.error('Error fetching comments:', error);
       }
     } else {
-      setPosts(prev => prev.map(p => 
+      setPosts(prev => prev.map(p =>
         p.id === postId ? { ...p, showComments: !p.showComments } : p
       ));
     }
@@ -110,8 +107,8 @@ export function usePostInteractions({ initialPosts, userId }: UsePostInteraction
       if (data.success) {
         setPosts(prev => prev.map(p => {
           if (p.id === postId) {
-            return { 
-              ...p, 
+            return {
+              ...p,
               comments: [data.comment, ...(p.comments || [])],
               comments_count: p.comments_count + 1
             };
@@ -124,11 +121,48 @@ export function usePostInteractions({ initialPosts, userId }: UsePostInteraction
     }
   }, [userId]);
 
+  const deletePost = useCallback(async (postId: number) => {
+    try {
+      const res = await fetch(`/api/posts/${postId}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        setPosts(prev => prev.filter(p => p.id !== postId));
+      }
+    } catch (error) {
+      console.error('Error deleting post:', error);
+    }
+  }, []);
+
+  const editPost = useCallback(async (postId: number) => {
+    if (!editContent.trim()) return;
+    try {
+      const res = await fetch(`/api/posts/${postId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: editContent }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setPosts(prev => prev.map(p => p.id === postId ? { ...p, content: editContent } : p));
+        setEditingPost(null);
+        setEditContent('');
+      }
+    } catch (error) {
+      console.error('Error editing post:', error);
+    }
+  }, [editContent]);
+
   return {
     posts,
     setPosts,
+    editingPost,
+    setEditingPost,
+    editContent,
+    setEditContent,
     toggleLike,
     toggleComments,
     addComment,
+    deletePost,
+    editPost,
   };
 }

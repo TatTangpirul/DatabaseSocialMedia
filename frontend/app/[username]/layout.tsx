@@ -20,10 +20,10 @@ export default function HomePage() {
     <div className="flex flex-row items-start justify-center p-4 gap-8">
       <AccountInfo />
       <UserPage />
-      <aside className="flex flex-col gap-4 w-72 shrink-0">
-              <MostPopular />
-              <DailyHotPosts />
-            </aside>
+      <aside className="flex flex-col gap-4 w-64 shrink-0">
+        <MostPopular />
+        <DailyHotPosts />
+      </aside>
     </div>
   );
 }

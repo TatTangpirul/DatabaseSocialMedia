@@ -14,6 +14,7 @@ export default function PostForm({ onPostSuccess }: { onPostSuccess: () => void 
     const [urlInput, setUrlInput] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
     const imageMenuRef = useRef<HTMLDivElement>(null);
+    const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
         function handleClickOutside(e: MouseEvent) {
@@ -34,8 +35,10 @@ export default function PostForm({ onPostSuccess }: { onPostSuccess: () => void 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
+        setUploading(true);
         const url = await handleImageUpload(file);
         if (url) setImageUrl(url);
+        setUploading(false);
         setShowImageMenu(false);
     };
 
@@ -119,7 +122,7 @@ export default function PostForm({ onPostSuccess }: { onPostSuccess: () => void 
                                 className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
                             >
                                 <Upload size={16} />
-                                Upload from device
+                                {uploading ? 'Uploading...' : 'Upload from device'}
                             </button>
                             <input
                                 ref={fileInputRef}
