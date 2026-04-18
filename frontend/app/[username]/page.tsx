@@ -42,6 +42,7 @@ export default function UserPage() {
         editingPost, setEditingPost,
         editContent, setEditContent,
         toggleLike, toggleComments, addComment, deletePost, editPost,
+        navigateToUser,
     } = usePostInteractions({ initialPosts: [], userId: user?.id });
 
     async function fetchUserPosts() {
@@ -178,12 +179,17 @@ export default function UserPage() {
                                 {post.comments?.map((comment) => (
                                     <div key={comment.id} className="flex gap-2">
                                         {comment.profile_image_url ? (
-                                            <img src={comment.profile_image_url} alt={comment.username} className="w-8 h-8 rounded-full object-cover" />
+                                            <img
+                                                src={comment.profile_image_url}
+                                                alt={comment.username}
+                                                className="w-8 h-8 rounded-full object-cover cursor-pointer"
+                                                onClick={() => navigateToUser(comment.username)}
+                                            />
                                         ) : (
-                                            <CircleUserRound size={32} className="text-gray-400" />
+                                            <CircleUserRound size={32} className="text-gray-400 cursor-pointer" onClick={() => navigateToUser(comment.username)}/>
                                         )}
                                         <div className="flex-1">
-                                            <p className="text-xs font-semibold">{comment.username}</p>
+                                            <p className="text-xs font-semibold cursor-pointer hover:underline" onClick={() => navigateToUser(comment.username)}>{comment.username}</p>
                                             <p className="text-xs text-gray-600">{comment.content}</p>
                                         </div>
                                     </div>

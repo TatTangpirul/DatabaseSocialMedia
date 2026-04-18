@@ -39,6 +39,9 @@ export function usePostInteractions({ initialPosts, userId }: UsePostInteraction
   const [editingPost, setEditingPost] = useState<number | null>(null);
   const [editContent, setEditContent] = useState('');
 
+  const navigateToUser = useCallback((username: string) => {
+      window.location.href = `/${username}`;
+  }, []);
   const toggleLike = useCallback(async (postId: number) => {
     if (!userId) return;
 
@@ -164,5 +167,6 @@ export function usePostInteractions({ initialPosts, userId }: UsePostInteraction
     addComment,
     deletePost,
     editPost,
+    navigateToUser
   };
 }
