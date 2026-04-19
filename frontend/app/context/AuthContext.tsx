@@ -1,3 +1,4 @@
+// app/context/AuthContext.tsx
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
@@ -5,6 +6,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 interface User {
   id: number;
   account: string;
+  email: string;
   profile_image_url: string | null;
   bio: string | null;
   n_posts: number;

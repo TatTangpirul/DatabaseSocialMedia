@@ -13,7 +13,7 @@ export async function GET() {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { account: string };
     
     const result = await pool.query(
-      'SELECT id, username, profile_image_url FROM users WHERE username = $1',
+      'SELECT id, username, email, bio, profile_image_url FROM users WHERE username = $1',
       [decoded.account]
     );
     
@@ -42,7 +42,7 @@ export async function PUT(request: Request) {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { account: string };
-    const { username, profile_image_url } = await request.json();
+    const { username, email, bio, profile_image_url } = await request.json();
     
     if (username !== decoded.account) {
       const existingUser = await pool.query(
@@ -59,10 +59,10 @@ export async function PUT(request: Request) {
     
     const result = await pool.query(
       `UPDATE users 
-       SET username = $1, profile_image_url = $2 
-       WHERE username = $3 
-       RETURNING id, username, profile_image_url`,
-      [username, profile_image_url || null, decoded.account]
+       SET username = $1, email = $2, bio = $3, profile_image_url = $4, updated_at = NOW()
+       WHERE username = $5 
+       RETURNING id, username, email, bio, profile_image_url`,
+      [username, email || null, bio || null, profile_image_url || null, decoded.account]
     );
     
     const newToken = jwt.sign(

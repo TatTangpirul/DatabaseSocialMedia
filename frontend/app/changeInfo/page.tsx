@@ -11,6 +11,10 @@ export default function ChangeInfo() {
   
   const [username, setUsername] = useState('');
   const [originalUsername, setOriginalUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [originalEmail, setOriginalEmail] = useState('');
+  const [bio, setBio] = useState('');
+  const [originalBio, setOriginalBio] = useState('');
   const [profileImageUrl, setProfileImageUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [checkingUsername, setCheckingUsername] = useState(false);
@@ -35,6 +39,10 @@ export default function ChangeInfo() {
       if (data.success) {
         setUsername(data.user.username);
         setOriginalUsername(data.user.username);
+        setEmail(data.user.email || '');
+        setOriginalEmail(data.user.email || '');
+        setBio(data.user.bio || '');
+        setOriginalBio(data.user.bio || '');
         setProfileImageUrl(data.user.profile_image_url || '');
       }
     } catch (error) {
@@ -94,6 +102,8 @@ export default function ChangeInfo() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           username,
+          email,
+          bio,
           profile_image_url: profileImageUrl,
         }),
       });
@@ -103,6 +113,8 @@ export default function ChangeInfo() {
       if (data.success) {
         setMessage({ type: 'success', text: 'Profile updated successfully!' });
         setOriginalUsername(username);
+        setOriginalEmail(email);
+        setOriginalBio(bio);
         
         setTimeout(() => {
           router.push(`/${username}`);
@@ -205,6 +217,35 @@ export default function ChangeInfo() {
             {username.length > 0 && username.length < 3 && (
               <p className="text-xs text-red-500 mt-1">Username must be at least 3 characters</p>
             )}
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="your@email.com"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Bio
+            </label>
+            <textarea
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              placeholder="Tell something about yourself..."
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              {bio.length}/200 characters
+            </p>
           </div>
           
           <button
