@@ -141,7 +141,6 @@ export function TopBar() {
                                 </div>
                             )}
                         </div>
-
                         <div className="flex items-center p-2 h-10 bg-gray-200 rounded-md cursor-pointer hover:bg-gray-300">
                             <Settings size={20} className="text-gray-600" />
                         </div>
