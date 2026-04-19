@@ -6,6 +6,7 @@ import { useState, useRef, useEffect } from "react";
 import { handlePost, handleImageUpload } from "@/lib/util/postHandler";
 import { useTheme } from "next-themes";
 
+
 export default function PostForm({ onPostSuccess }: { onPostSuccess: () => void }) {
     const { user } = useAuth();
     const { theme } = useTheme();
