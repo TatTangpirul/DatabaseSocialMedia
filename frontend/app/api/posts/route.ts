@@ -74,7 +74,7 @@ export async function POST(req: Request) {
 
     const { content, image_url } = await req.json();
 
-    if (!content?.trim()) {
+    if (!content?.trim() && !image_url) {
       return NextResponse.json({ error: 'Content is required' }, { status: 400 });
     }
 

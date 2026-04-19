@@ -2,7 +2,7 @@
 
 export async function handlePost(content: string, imageUrl?: string, onSuccess?: () => void) {
     if (!content.trim() && !imageUrl) return;
-    
+
     try {
         const res = await fetch('/api/posts', {
             method: 'POST',
@@ -36,7 +36,7 @@ export async function handleImageUpload(file: File): Promise<string | null> {
         const data = await res.json();
 
         if (data.success) {
-            return data.data.url; // returns the image URL
+            return data.data.url;
         }
         return null;
     } catch (err) {
