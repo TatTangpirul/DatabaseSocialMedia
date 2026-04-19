@@ -1,8 +1,8 @@
 // lib/util/postHandler.ts
 
 export async function handlePost(content: string, imageUrl?: string, onSuccess?: () => void) {
-    if (!content.trim()) return;
-
+    if (!content.trim() && !imageUrl) return;
+    
     try {
         const res = await fetch('/api/posts', {
             method: 'POST',
