@@ -1,13 +1,16 @@
 'use client';
 
-import { CircleUserRound, ImageIcon, Link2, Upload, X } from "lucide-react";
+import { CircleUserRound, ImageIcon, Upload, X } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useState, useRef, useEffect } from "react";
 import { handlePost, handleImageUpload } from "@/lib/util/postHandler";
+import { useTheme } from "next-themes";
 
 export default function PostForm({ onPostSuccess }: { onPostSuccess: () => void }) {
-
     const { user } = useAuth();
+    const { theme } = useTheme();
+    const isDark = theme === 'dark';
+
     const [content, setContent] = useState('');
     const [imageUrl, setImageUrl] = useState('');
     const [showImageMenu, setShowImageMenu] = useState(false);
@@ -46,32 +49,27 @@ export default function PostForm({ onPostSuccess }: { onPostSuccess: () => void 
         handlePost(content, imageUrl || undefined, () => {
             setContent('');
             setImageUrl('');
-            onPostSuccess(); // re-fetch posts
+            onPostSuccess();
         });
-    }
+    };
 
     return (
         <>
             <div className="flex items-center gap-2">
                 {user?.profile_image_url ? (
-                    <img
-                        src={user.profile_image_url}
-                        alt="Profile"
-                        className="w-10 h-10 rounded-full object-cover"
-                    />
+                    <img src={user.profile_image_url} alt="Profile" className="w-10 h-10 rounded-full object-cover" />
                 ) : (
-                    <CircleUserRound size={40} className="text-gray-600 self-start" />
+                    <CircleUserRound size={40} className={`self-start ${isDark ? 'text-gray-400' : 'text-gray-600'}`} />
                 )}
                 <textarea
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                     placeholder="What's on your mind?"
-                    className="flex-1 resize-none rounded-md px-3 p-0 text-sm focus:outline-none focus:ring-0 flex items-center leading-[2.5rem]"
+                    className={`flex-1 resize-none rounded-md px-3 p-0 text-sm focus:outline-none focus:ring-0 leading-[2.5rem] bg-transparent ${isDark ? 'text-white placeholder-gray-500' : 'text-gray-800'}`}
                     rows={1}
                 />
             </div>
 
-            {/* Image preview */}
             {imageUrl && (
                 <div className="relative mt-2">
                     <img src={imageUrl} alt="Preview" className="w-full rounded-md object-cover max-h-48" />
@@ -88,24 +86,23 @@ export default function PostForm({ onPostSuccess }: { onPostSuccess: () => void 
                 <div className="relative" ref={imageMenuRef}>
                     <button
                         onClick={() => setShowImageMenu(!showImageMenu)}
-                        className="flex items-center gap-1 h-8 p-2 text-gray-600 bg-gray-100 rounded-lg hover:text-blue-500 text-sm cursor-pointer"
+                        className={`flex items-center gap-1 h-8 p-2 rounded-lg hover:text-blue-500 text-sm cursor-pointer ${isDark ? 'text-gray-400 bg-slate-700 hover:bg-slate-600' : 'text-gray-600 bg-gray-100'}`}
                     >
                         <ImageIcon size={18} />
                         <span>Photo</span>
                     </button>
 
                     {showImageMenu && (
-                        <div className="absolute left-0 top-full mt-1 w-56 bg-white rounded-md shadow-lg border border-gray-100 z-50">
-                            {/* Paste URL */}
-                            <div className="p-2 border-b">
-                                <p className="text-xs text-gray-500 mb-1">Paste image link</p>
+                        <div className={`absolute left-0 top-full mt-1 w-56 rounded-md shadow-lg border z-50 ${isDark ? 'bg-slate-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+                            <div className={`p-2 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
+                                <p className={`text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Paste image link</p>
                                 <div className="flex gap-1">
                                     <input
                                         type="text"
                                         value={urlInput}
                                         onChange={(e) => setUrlInput(e.target.value)}
                                         placeholder="https://..."
-                                        className="flex-1 text-xs border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                        className={`flex-1 text-xs border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500 ${isDark ? 'bg-slate-700 border-gray-600 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-800'}`}
                                     />
                                     <button
                                         onClick={handleUrlSubmit}
@@ -116,10 +113,9 @@ export default function PostForm({ onPostSuccess }: { onPostSuccess: () => void 
                                     </button>
                                 </div>
                             </div>
-                            {/* Upload raw image */}
                             <button
                                 onClick={() => fileInputRef.current?.click()}
-                                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                                className={`w-full flex items-center gap-2 px-3 py-2 text-sm ${isDark ? 'text-gray-300 hover:bg-slate-700' : 'text-gray-700 hover:bg-gray-50'}`}
                             >
                                 <Upload size={16} />
                                 {uploading ? 'Uploading...' : 'Upload from device'}
@@ -137,7 +133,7 @@ export default function PostForm({ onPostSuccess }: { onPostSuccess: () => void 
 
                 <button
                     onClick={onPost}
-                    disabled={!content.trim()}
+                    disabled={!content.trim() && !imageUrl}
                     className="rounded-md bg-blue-600 px-4 py-1.5 text-sm text-white hover:bg-blue-700 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     Post

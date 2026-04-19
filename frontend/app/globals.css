@@ -6,7 +6,7 @@
 }
 
 .dark {
-  --background: #0f172a;
+  --background: #191a1e; 
   --foreground: #f3f4f6;
 }
 
@@ -31,6 +31,6 @@ body {
 }
 
 .dark #top {
-  background-color: #1e293b;
+  background-color: #0f0f0f;
   border-bottom: 1px solid #334155;
 }
