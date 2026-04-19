@@ -16,15 +16,18 @@ export default function Feed() {
   const [hoveredPost, setHoveredPost] = useState<number | null>(null);
   const [menuOpen, setMenuOpen] = useState<number | null>(null);
 
-  // Destructure functions directly from your hook
   const {
-    posts,
-    setPosts,
-    toggleLike,
-    toggleComments,
-    addComment,
-    // deletePost, // Uncomment if you use these
-    // editPost,
+      posts,
+      setPosts,
+      editingPost,
+      setEditingPost,
+      editContent,
+      setEditContent,
+      toggleLike,
+      toggleComments,
+      addComment,
+      deletePost,
+      editPost,
   } = usePostInteractions({ initialPosts: [], userId: user?.id });
 
   async function fetchPosts(showLoading = false) {
@@ -67,44 +70,52 @@ export default function Feed() {
   }
 
   return (
-    <div className="w-full flex flex-col items-center">
+    <div className="w-150 flex flex-col items-center">
       {user && (
         <div className="w-150 bg-white dark:bg-slate-800 p-4 rounded-lg shadow-lg space-y-4 mb-6">
           <PostForm onPostSuccess={() => fetchPosts()} />
         </div>
       )}
       
-      <div className="w-full flex flex-col items-center">
+      <div className="w-150 flex flex-col items-center">
         {posts.length === 0 ? (
           <p className="text-gray-500 dark:text-gray-400 text-sm">No posts yet.</p>
         ) : (
           posts.map((post) => (
             <div
               key={post.id}
-              className="relative w-150 bg-white dark:bg-slate-800 p-4 rounded-lg shadow-lg space-y-4 mb-6 border dark:border-gray-700"
+              className="relative w-150 bg-white dark:bg-slate-800 p-4 rounded-lg shadow-lg space-y-4 mb-6 dark:border dark:border-gray-700"
               onMouseEnter={() => setHoveredPost(post.id)}
               onMouseLeave={() => { setHoveredPost(null); setMenuOpen(null); }}
             >
               {/* Menu */}
               {hoveredPost === post.id && user?.account === post.username && (
-                <div className="absolute top-3 right-3">
-                  <button
-                    onClick={() => setMenuOpen(menuOpen === post.id ? null : post.id)}
-                    className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-400"
-                  >
-                    <MoreHorizontal size={18} />
-                  </button>
-                  {menuOpen === post.id && (
-                    <div className="absolute right-0 mt-1 w-36 bg-white dark:bg-slate-700 border dark:border-gray-600 rounded-lg shadow-lg z-10">
-                      <button className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-600 flex items-center gap-2">
-                        <Pencil size={14} />Edit
+                  <div className="absolute top-3 right-3">
+                      <button
+                          onClick={(e) => { e.stopPropagation(); setMenuOpen(menuOpen === post.id ? null : post.id); }}
+                          className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-400"
+                      >
+                          <MoreHorizontal size={18} />
                       </button>
-                      <button className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50 flex items-center gap-2">
-                        <Trash2 size={14} />Delete
+                  </div>
+              )}
+              {menuOpen === post.id && (
+                  <div className="absolute top-10 right-3 w-36 bg-white dark:bg-slate-700 border dark:border-gray-600 rounded-lg shadow-lg z-10 overflow-hidden">
+                      <button
+                          onClick={() => { setEditingPost(post.id); setEditContent(post.content); setMenuOpen(null); }}
+                          className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-600 flex items-center gap-2"
+                      >
+                          <Pencil size={14} />
+                          Edit post
                       </button>
-                    </div>
-                  )}
-                </div>
+                      <button
+                          onClick={() => { deletePost(post.id); setMenuOpen(null); }}
+                          className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50 flex items-center gap-2"
+                      >
+                          <Trash2 size={14} />
+                          Delete post
+                      </button>
+                  </div>
               )}
 
               {/* Header */}
@@ -119,7 +130,33 @@ export default function Feed() {
 
               {/* Content */}
               {post.image_url && <img src={post.image_url} className="w-full object-cover rounded-md my-2" />}
-              <p className="text-sm text-gray-600 dark:text-gray-300 truncate mt-4">{post.content}</p>
+              {editingPost === post.id ? (
+                  <div className="flex flex-col gap-2">
+                      <textarea
+                          value={editContent}
+                          onChange={(e) => setEditContent(e.target.value)}
+                          className="w-full text-sm border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none dark:bg-slate-700 dark:text-white"
+                          rows={3}
+                      />
+                      <div className="flex gap-2 justify-end">
+                          <button
+                              onClick={() => { setEditingPost(null); setEditContent(''); }}
+                              className="px-3 py-1 text-sm text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200"
+                          >
+                              Cancel
+                          </button>
+                          <button
+                              onClick={() => editPost(post.id)}
+                              disabled={!editContent.trim()}
+                              className="px-3 py-1 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+                          >
+                              Save
+                          </button>
+                      </div>
+                  </div>
+              ) : (
+                  <p className="text-sm text-gray-600 dark:text-gray-300 truncate mt-4">{post.content}</p>
+              )}
 
               {/* Actions */}
               <div className="flex items-center gap-4 mt-2">
