@@ -14,7 +14,7 @@ export default function AccountInfo() {
     const menuItems = [
         { icon: Home, label: 'Feed', path: '/' },
         { icon: Newspaper, label: 'Your Posts', path: `/${user?.account}` },
-        { icon: Settings, label: 'Settings', path: '/settings' },
+        { icon: Settings, label: 'Settings', path: '/changeInfo' },
     ];
 
     return (

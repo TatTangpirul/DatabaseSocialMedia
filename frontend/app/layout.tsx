@@ -4,7 +4,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { usePathname } from 'next/navigation';
 import { FeedProvider } from "./context/FeedContext";
 import { TopBar } from "./MainComponent/TopBar";
-import { ThemeProvider } from "./MainComponent/ThemeProvider";
+import { ThemeProvider } from "./context/ThemeProvider";
 
 export default function RootLayout({
   children,

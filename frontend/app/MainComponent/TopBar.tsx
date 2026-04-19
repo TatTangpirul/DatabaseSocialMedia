@@ -122,9 +122,11 @@ export function TopBar() {
                             )}
                         </div>
 
-                        <div className={`flex items-center p-2 h-10 rounded-md cursor-pointer transition-colors ${isDark ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'}`}>
-                            <Settings size={20} className={isDark ? 'text-gray-300' : 'text-gray-600'} />
-                        </div>
+                        <Link href="/changeInfo">
+                            <div className={`flex items-center p-2 h-10 rounded-md cursor-pointer transition-colors ${isDark ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'}`}>
+                                <Settings size={20} className={isDark ? 'text-gray-300' : 'text-gray-600'} />
+                            </div>
+                        </Link>
 
                         {user ? <ProfileDropdown /> : null}
                     </div>
