@@ -6,6 +6,7 @@ import { CircleUserRound, Heart, MessageCircle, MoreHorizontal, Pencil, Trash2 }
 import { useAuth } from '../context/AuthContext';
 import { useFeed } from '../context/FeedContext';
 import { usePostInteractions } from '../MainComponent/usePostInteractions';
+import { useTheme } from 'next-themes';
 
 interface Post {
     id: number;
@@ -35,6 +36,8 @@ export default function UserPage() {
     const { username } = useParams();
     const [loading, setLoading] = useState(true);
     const { sortType } = useFeed();
+    const { theme } = useTheme();
+    const isDark = theme === 'dark';
     const [hoveredPost, setHoveredPost] = useState<number | null>(null);
     const [menuOpen, setMenuOpen] = useState<number | null>(null);
     const {
@@ -76,17 +79,21 @@ export default function UserPage() {
         fetchUserPosts();
     }, [username, sortType, user]);
 
-    if (loading) return <div className="w-150 p-8 bg-white rounded-lg shadow-lg">Loading posts...</div>;
+    if (loading) return (
+        <div className={`w-150 p-8 rounded-lg shadow-lg ${isDark ? 'bg-bg-[#141519] text-white' : 'bg-white text-gray-800'}`}>
+            Loading posts...
+        </div>
+    );
 
     return (
         <div className="flex flex-col items-center gap-4 px-4">
             {posts.length === 0 ? (
-                <p className="text-gray-500 text-sm">No posts yet.</p>
+                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>No posts yet.</p>
             ) : (
                 posts.map((post) => (
                     <div
                         key={post.id}
-                        className="relative w-150 bg-white p-4 rounded-lg shadow-lg space-y-2"
+                        className={`relative w-150 p-4 rounded-lg shadow-lg space-y-2 ${isDark ? 'bg-[#141519] border border-gray-700' : 'bg-white'}`}
                         onMouseEnter={() => setHoveredPost(post.id)}
                         onMouseLeave={() => { setHoveredPost(null); setMenuOpen(null); }}
                     >
@@ -94,7 +101,7 @@ export default function UserPage() {
                             <div className="absolute top-3 right-3">
                                 <button
                                     onClick={(e) => { e.stopPropagation(); setMenuOpen(menuOpen === post.id ? null : post.id); }}
-                                    className="p-1 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600"
+                                    className={`p-1 rounded-full text-gray-400 ${isDark ? 'hover:bg-slate-700' : 'hover:bg-gray-100'}`}
                                 >
                                     <MoreHorizontal size={18} />
                                 </button>
@@ -102,46 +109,49 @@ export default function UserPage() {
                         )}
 
                         {menuOpen === post.id && (
-                            <div className="absolute top-10 right-3 w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden">
+                            <div className={`absolute top-10 right-3 w-36 rounded-lg shadow-lg z-10 overflow-hidden border ${isDark ? 'bg-slate-700 border-gray-600' : 'bg-white border-gray-200'}`}>
                                 <button
                                     onClick={() => { setEditingPost(post.id); setEditContent(post.content); setMenuOpen(null); }}
-                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                    className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${isDark ? 'text-gray-200 hover:bg-slate-600' : 'text-gray-700 hover:bg-gray-50'}`}
                                 >
                                     <Pencil size={14} />
                                     Edit post
                                 </button>
                                 <button
                                     onClick={() => { deletePost(post.id); setMenuOpen(null); }}
-                                    className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50 flex items-center gap-2"
+                                    className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 text-red-500 ${isDark ? 'hover:bg-slate-600' : 'hover:bg-red-50'}`}
                                 >
                                     <Trash2 size={14} />
                                     Delete post
                                 </button>
                             </div>
                         )}
+
                         <div className="flex items-center gap-2">
                             {post.profile_image_url ? (
                                 <img src={post.profile_image_url} alt={post.username} className="w-10 h-10 rounded-full object-cover" />
                             ) : (
-                                <CircleUserRound size={40} className="text-gray-600" />
+                                <CircleUserRound size={40} className={isDark ? 'text-gray-400' : 'text-gray-600'} />
                             )}
-                            <p className="font-semibold text-sm">{post.username}</p>
+                            <p className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-gray-800'}`}>{post.username}</p>
                         </div>
+
                         {post.image_url && (
                             <img src={post.image_url} alt="Post" className="w-full rounded-md object-cover" />
                         )}
+
                         {editingPost === post.id ? (
                             <div className="flex flex-col gap-2">
                                 <textarea
                                     value={editContent}
                                     onChange={(e) => setEditContent(e.target.value)}
-                                    className="w-full text-sm border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                                    className={`w-full text-sm border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${isDark ? 'bg-slate-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`}
                                     rows={3}
                                 />
                                 <div className="flex gap-2 justify-end">
                                     <button
                                         onClick={() => { setEditingPost(null); setEditContent(''); }}
-                                        className="px-3 py-1 text-sm text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200"
+                                        className={`px-3 py-1 text-sm rounded-md ${isDark ? 'text-gray-300 bg-slate-600 hover:bg-slate-500' : 'text-gray-600 bg-gray-100 hover:bg-gray-200'}`}
                                     >
                                         Cancel
                                     </button>
@@ -155,27 +165,29 @@ export default function UserPage() {
                                 </div>
                             </div>
                         ) : (
-                            <p className="text-sm text-gray-600">{post.content}</p>
+                            <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{post.content}</p>
                         )}
+
                         <div className="flex items-center gap-4">
                             <button
                                 onClick={() => toggleLike(post.id)}
                                 disabled={post.likeLoading}
                                 className={`flex items-center gap-1 text-sm cursor-pointer ${post.likeLoading ? 'opacity-50' : ''}`}
                             >
-                                <Heart size={16} className={post.liked && post.likes_count > 0 ? 'fill-red-500 text-red-500' : 'text-gray-500'} />
-                                <span className="text-gray-500">{post.likes_count}</span>
+                                <Heart size={16} className={post.liked && post.likes_count > 0 ? 'fill-red-500 text-red-500' : (isDark ? 'text-gray-400' : 'text-gray-500')} />
+                                <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>{post.likes_count}</span>
                             </button>
                             <button
                                 onClick={() => toggleComments(post.id)}
                                 className="flex items-center gap-1 text-sm cursor-pointer"
                             >
-                                <MessageCircle size={16} className="text-gray-500" />
-                                <span className="text-gray-500">{post.comments_count}</span>
+                                <MessageCircle size={16} className={isDark ? 'text-gray-400' : 'text-gray-500'} />
+                                <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>{post.comments_count}</span>
                             </button>
                         </div>
+
                         {post.showComments && (
-                            <div className="mt-3 pt-3 border-t border-gray-100 space-y-3">
+                            <div className={`mt-3 pt-3 border-t space-y-3 ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
                                 {post.comments?.map((comment) => (
                                     <div key={comment.id} className="flex gap-2">
                                         {comment.profile_image_url ? (
@@ -186,32 +198,39 @@ export default function UserPage() {
                                                 onClick={() => navigateToUser(comment.username)}
                                             />
                                         ) : (
-                                            <CircleUserRound size={32} className="text-gray-400 cursor-pointer" onClick={() => navigateToUser(comment.username)}/>
+                                            <CircleUserRound
+                                                size={32}
+                                                className={`cursor-pointer ${isDark ? 'text-gray-500' : 'text-gray-400'}`}
+                                                onClick={() => navigateToUser(comment.username)}
+                                            />
                                         )}
                                         <div className="flex-1">
-                                            <p className="text-xs font-semibold cursor-pointer hover:underline" onClick={() => navigateToUser(comment.username)}>{comment.username}</p>
-                                            <p className="text-xs text-gray-600">{comment.content}</p>
+                                            <p
+                                                className={`text-xs font-semibold cursor-pointer hover:underline ${isDark ? 'text-white' : 'text-gray-800'}`}
+                                                onClick={() => navigateToUser(comment.username)}
+                                            >
+                                                {comment.username}
+                                            </p>
+                                            <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{comment.content}</p>
                                         </div>
                                     </div>
                                 ))}
                                 {user && (
-                                    <div className="flex gap-2 mt-0">
-                                        <input
-                                            type="text"
-                                            placeholder="Write a comment..."
-                                            className="flex-1 text-xs rounded px-2 py-1 border"
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter') {
-                                                    addComment(post.id, (e.target as HTMLInputElement).value);
-                                                    (e.target as HTMLInputElement).value = '';
-                                                }
-                                            }}
-                                        />
-                                    </div>
+                                    <input
+                                        type="text"
+                                        placeholder="Write a comment..."
+                                        className={`w-full flex-1 text-xs rounded px-2 py-1 border ${isDark ? 'bg-slate-700 border-gray-600 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-800'}`}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                addComment(post.id, (e.target as HTMLInputElement).value);
+                                                (e.target as HTMLInputElement).value = '';
+                                            }
+                                        }}
+                                    />
                                 )}
                             </div>
                         )}
-                        <p className="text-xs text-gray-400">{new Date(post.updated_at).toLocaleDateString()}</p>
+                        <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{new Date(post.updated_at).toLocaleDateString()}</p>
                     </div>
                 ))
             )}
