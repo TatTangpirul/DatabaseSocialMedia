@@ -33,7 +33,21 @@ A full-stack social media web application built with **Next.js**, **PostgreSQL**
 
 ---
 
-## Getting Started
+## Quick Start (Assignment Submission)
+
+> A `.env` file with working credentials is already included in the submission. No additional setup is needed for environment variables.
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000), or the port that the terminal tells, in your browser.
+
+---
+
+## Getting Started (Manual Setup)
 
 ### 1. Clone the repository
 
@@ -50,7 +64,7 @@ npm install
 
 ### 3. Set up environment variables
 
-Create a `.env.local` file in the root of the project:
+Create a `.env.local` file in the root of the `frontend` folder:
 
 ```env
 DATABASE_URL=postgresql://your_user:your_password@your_host:5432/postgres
@@ -111,6 +125,7 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
+
 
 ---
 
